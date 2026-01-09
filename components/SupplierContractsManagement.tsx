@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import DataTable from './DataTable';
 import StatusFilter from './StatusFilter';
@@ -24,9 +25,9 @@ const SupplierContractsManagement: React.FC<SupplierContractsManagementProps> = 
 
   const filteredGeneralContracts = generalContracts.filter(c => statusFilter === 'all' || c.status === statusFilter);
   
-  const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-right font-medium text-white";
-  const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-top";
-  const wideCellClass = "px-2 py-4 text-gray-700 align-top break-words max-w-sm";
+  const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-center align-middle font-medium text-white [&>button]:justify-center";
+  const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center";
+  const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm";
 
   const generalContractColumns: { key: keyof License | 'actions' | 'remaining' | 'attachments'; header: string; render?: (item: License) => React.ReactNode; exportValue?: (item: License) => string | number | null | undefined; headerClassName?: string; cellClassName?: string; }[] = [
     { key: 'name', header: 'اسم العقد العام', headerClassName: baseHeaderClass, cellClassName: wideCellClass },

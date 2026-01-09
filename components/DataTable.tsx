@@ -177,8 +177,8 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
               <tr key={item.id} className="hover:bg-gray-50">
                 {columns.map((col) => {
                   const defaultTdClass = ['name', 'notes'].includes(String(col.key))
-                    ? 'px-4 py-4 text-gray-700 align-top break-words max-w-sm'
-                    : 'whitespace-nowrap px-4 py-4 text-gray-700 align-top';
+                    ? 'px-4 py-4 text-gray-700 align-middle break-words max-w-sm'
+                    : 'whitespace-nowrap px-4 py-4 text-gray-700 align-middle';
                   
                   const tdClass = col.cellClassName || defaultTdClass;
 
@@ -187,7 +187,7 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
                       {col.render ? (
                         col.render(item)
                       ) : col.key === 'actions' ? (
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 justify-center">
                           <button onClick={() => onEdit(item)} className="text-blue-500 hover:text-blue-700" aria-label="تعديل السجل"><PencilIcon /></button>
                           <button onClick={() => onDelete(item)} className="text-red-500 hover:text-red-700" aria-label="حذف السجل"><TrashIcon /></button>
                         </div>
@@ -201,7 +201,7 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
                           </span>
                       ) : col.key === 'attachments' ? (
                           item.attachments && item.attachments.length > 0 ? (
-                              <div className="flex items-center -space-x-4">
+                              <div className="flex items-center -space-x-4 justify-center">
                                   {item.attachments.map((att, index) => (
                                       <a href={att.data} key={index} target="_blank" rel="noopener noreferrer" title={att.name || 'عرض الملف'}>
                                           {(() => {

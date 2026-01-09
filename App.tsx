@@ -165,32 +165,22 @@ const App: React.FC = () => {
     const { record: recordToDelete, type } = deleteConfirmation;
     if (!recordToDelete || !type) return;
 
-    switch (type) {
-      case 'commercialLicense':
-        setCommercialLicenses(prev => prev.filter(r => r.id !== recordToDelete.id));
-        break;
-      case 'operationalLicense':
-        setOperationalLicenses(prev => prev.filter(r => r.id !== recordToDelete.id));
-        break;
-      case 'civilDefenseCert':
-        setCivilDefenseCerts(prev => prev.filter(r => r.id !== recordToDelete.id));
-        break;
-      case 'specialAgency':
-        setSpecialAgencies(prev => prev.filter(r => r.id !== recordToDelete.id));
-        break;
-      case 'leaseContract':
-        setLeaseContracts(prev => prev.filter(r => r.id !== recordToDelete.id));
-        break;
-      case 'generalContract':
-        setGeneralContracts(prev => prev.filter(r => r.id !== recordToDelete.id));
-        break;
-      case 'procedure':
-        setProcedures(prev => prev.filter(r => r.id !== recordToDelete.id));
-        break;
-      case 'otherTopic':
-        setOtherTopicsData(prev => prev.filter(r => r.id !== recordToDelete.id));
-        break;
+    const setters: Partial<Record<RecordDataType, React.Dispatch<React.SetStateAction<any[]>>>> = {
+        commercialLicense: setCommercialLicenses,
+        operationalLicense: setOperationalLicenses,
+        civilDefenseCert: setCivilDefenseCerts,
+        specialAgency: setSpecialAgencies,
+        leaseContract: setLeaseContracts,
+        generalContract: setGeneralContracts,
+        procedure: setProcedures,
+        otherTopic: setOtherTopicsData,
+    };
+
+    const setter = setters[type];
+    if (setter) {
+        setter(prev => prev.filter(r => r.id !== recordToDelete.id));
     }
+
     setDeleteConfirmation({ isOpen: false, record: undefined, type: undefined });
   };
 
@@ -234,31 +224,24 @@ const App: React.FC = () => {
         }
     };
     
-    switch (type) {
-        case 'commercialLicense':
-        case 'operationalLicense':
-        case 'civilDefenseCert':
-        case 'specialAgency':
-        case 'generalContract':
-        case 'otherTopic':
-            const setters = {
-                commercialLicense: setCommercialLicenses,
-                operationalLicense: setOperationalLicenses,
-                civilDefenseCert: setCivilDefenseCerts,
-                specialAgency: setSpecialAgencies,
-                generalContract: setGeneralContracts,
-                otherTopic: setOtherTopicsData,
-            };
-            if (type in setters) {
-               updateList(setters[type as keyof typeof setters] as any, recordWithStatus as License);
-            }
-            break;
-        case 'leaseContract':
-            updateList(setLeaseContracts, recordWithStatus as Contract);
-            break;
-        case 'procedure':
-            updateList(setProcedures, recordToSave as Procedure);
-            break;
+    const licenseSetters: Partial<Record<RecordDataType, React.Dispatch<React.SetStateAction<License[]>>>> = {
+      commercialLicense: setCommercialLicenses,
+      operationalLicense: setOperationalLicenses,
+      civilDefenseCert: setCivilDefenseCerts,
+      specialAgency: setSpecialAgencies,
+      generalContract: setGeneralContracts,
+      otherTopic: setOtherTopicsData,
+    };
+    
+    if (type && type in licenseSetters) {
+      const setter = licenseSetters[type];
+      if (setter) {
+        updateList(setter, recordWithStatus as License);
+      }
+    } else if (type === 'leaseContract') {
+      updateList(setLeaseContracts, recordWithStatus as Contract);
+    } else if (type === 'procedure') {
+      updateList(setProcedures, recordToSave as Procedure);
     }
 
     handleCloseModal();
@@ -268,25 +251,25 @@ const App: React.FC = () => {
   const lowercasedQuery = searchQuery.toLowerCase();
   
   const filteredCommercialLicenses = commercialLicenses.filter(item =>
-    item.name?.toLowerCase().includes(lowercasedQuery) ||
+    item.name.toLowerCase().includes(lowercasedQuery) ||
     item.number.toLowerCase().includes(lowercasedQuery) ||
     item.notes?.toLowerCase().includes(lowercasedQuery)
   );
   
   const filteredOperationalLicenses = operationalLicenses.filter(item =>
-    item.name?.toLowerCase().includes(lowercasedQuery) ||
+    item.name.toLowerCase().includes(lowercasedQuery) ||
     item.number.toLowerCase().includes(lowercasedQuery) ||
     item.notes?.toLowerCase().includes(lowercasedQuery)
   );
 
   const filteredCivilDefenseCerts = civilDefenseCerts.filter(item =>
-    item.name?.toLowerCase().includes(lowercasedQuery) ||
+    item.name.toLowerCase().includes(lowercasedQuery) ||
     item.number.toLowerCase().includes(lowercasedQuery) ||
     item.notes?.toLowerCase().includes(lowercasedQuery)
   );
 
   const filteredSpecialAgencies = specialAgencies.filter(item =>
-    item.name?.toLowerCase().includes(lowercasedQuery) ||
+    item.name.toLowerCase().includes(lowercasedQuery) ||
     item.number.toLowerCase().includes(lowercasedQuery) ||
     item.notes?.toLowerCase().includes(lowercasedQuery)
   );
@@ -298,13 +281,13 @@ const App: React.FC = () => {
   );
   
   const filteredGeneralContracts = generalContracts.filter(item =>
-    item.name?.toLowerCase().includes(lowercasedQuery) ||
+    item.name.toLowerCase().includes(lowercasedQuery) ||
     item.number.toLowerCase().includes(lowercasedQuery) ||
     item.notes?.toLowerCase().includes(lowercasedQuery)
   );
   
   const filteredOtherTopicsData = otherTopicsData.filter(item =>
-    item.name?.toLowerCase().includes(lowercasedQuery) ||
+    item.name.toLowerCase().includes(lowercasedQuery) ||
     item.number.toLowerCase().includes(lowercasedQuery) ||
     item.notes?.toLowerCase().includes(lowercasedQuery)
   );

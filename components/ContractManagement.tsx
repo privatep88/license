@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import DataTable from './DataTable';
 import StatusFilter from './StatusFilter';
@@ -19,9 +20,9 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
 
   const filteredContracts = contracts.filter(c => statusFilter === 'all' || c.status === statusFilter);
 
-  const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-right font-medium text-white";
-  const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-top";
-  const wideCellClass = "px-2 py-4 text-gray-700 align-top break-words max-w-sm";
+  const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-center align-middle font-medium text-white [&>button]:justify-center";
+  const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center";
+  const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm";
 
   const columns: { 
     key: keyof Contract | 'actions' | 'remaining' | 'attachments'; 
@@ -40,7 +41,7 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
       headerClassName: baseHeaderClass,
       cellClassName: baseCellClass,
       render: (item) => (
-        <div className="text-xs space-y-1">
+        <div className="inline-block text-right text-xs space-y-1">
           {item.documentedExpiryDate && (
             <div className="flex items-center gap-x-2">
               <span className="font-medium text-gray-500">الموثق:</span>
@@ -63,7 +64,7 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
       headerClassName: baseHeaderClass,
       cellClassName: baseCellClass,
       render: (item) => (
-        <div className="space-y-1.5">
+        <div className="inline-block space-y-1.5">
           {item.documentedStatus && (
             <div className="flex items-center gap-2">
               <span className="font-medium text-gray-500 text-xs text-left w-12">الموثق:</span>

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import DataTable from './DataTable';
-import type { License, RecordDataType } from '../types';
+import type { License, RecordDataType, RecordStatus } from '../types';
 import StatusFilter from './StatusFilter';
 import { LicenseIcon } from './icons/TabIcons';
 import { ClipboardListIcon, ShieldIcon } from './icons/ActionIcons';
@@ -35,9 +35,9 @@ const LicenseManagement: React.FC<LicenseManagementProps> = ({
     onEdit,
     onDelete
 }) => {
-  const [commercialFilter, setCommercialFilter] = useState<'all' | any>('all');
-  const [operationalFilter, setOperationalFilter] = useState<'all' | any>('all');
-  const [civilDefenseFilter, setCivilDefenseFilter] = useState<'all' | any>('all');
+  const [commercialFilter, setCommercialFilter] = useState<RecordStatus | 'all'>('all');
+  const [operationalFilter, setOperationalFilter] = useState<RecordStatus | 'all'>('all');
+  const [civilDefenseFilter, setCivilDefenseFilter] = useState<RecordStatus | 'all'>('all');
 
   const filteredCommercial = commercialLicenses.filter(
     l => commercialFilter === 'all' || l.status === commercialFilter
@@ -49,9 +49,9 @@ const LicenseManagement: React.FC<LicenseManagementProps> = ({
     l => civilDefenseFilter === 'all' || l.status === civilDefenseFilter
   );
 
-  const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-right font-medium text-white";
-  const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-top";
-  const wideCellClass = "px-2 py-4 text-gray-700 align-top break-words max-w-sm";
+  const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-center align-middle font-medium text-white [&>button]:justify-center";
+  const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center";
+  const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm";
 
   // FIX: Use the defined LicenseColumn type for strong typing and better readability.
   const baseLicenseColumns: LicenseColumn[] = [
@@ -80,7 +80,11 @@ const LicenseManagement: React.FC<LicenseManagementProps> = ({
   // FIX: Use the defined LicenseColumn type to fix type inference issue.
   const civilDefenseCertColumns: LicenseColumn[] = [
     { key: 'name', header: 'الموضوع', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
-    ...baseLicenseColumns.map(c => c.key === 'number' ? {...c, header: 'الرقم'} : c)
+    ...baseLicenseColumns.map(c => {
+        if (c.key === 'number') return { ...c, header: 'الرقم' };
+        if (c.key === 'status') return { ...c, header: 'حالة الشهادة' };
+        return c;
+    })
   ];
 
   return (

@@ -26,7 +26,7 @@ export interface Attachment {
 
 export interface License {
   id: number;
-  name?: string;
+  name: string;
   number: string;
   expiryDate: string;
   status: RecordStatus;
