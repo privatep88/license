@@ -6,7 +6,7 @@ import StatusFilter from './StatusFilter';
 import type { Contract, RecordDataType } from '../types';
 import { RecordStatus } from '../types';
 import { ContractIcon } from './icons/TabIcons';
-import { formatCost, getStatusClass, calculateRemainingDays } from '../utils';
+import { formatCost, getStatusClass, calculateRemainingDays, calculateRemainingPeriod, getRemainingPeriodClass } from '../utils';
 
 interface ContractManagementProps {
     contracts: Contract[];
@@ -85,8 +85,64 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
       ),
       exportValue: (item) => `الموثق: ${item.documentedStatus || 'N/A'}, البيني: ${item.internalStatus || 'N/A'}`
     },
-    { key: 'remaining', header: 'المدة المتبقية', exportValue: (item) => calculateRemainingDays(item.documentedExpiryDate), headerClassName: baseHeaderClass, cellClassName: baseCellClass },
-    { key: 'cost', header: 'التكلفة', render: (item) => formatCost(item.cost), exportValue: (item) => item.cost, headerClassName: baseHeaderClass, cellClassName: baseCellClass },
+    { 
+      key: 'remaining', 
+      header: 'المدة المتبقية', 
+      headerClassName: baseHeaderClass,
+      cellClassName: baseCellClass,
+      render: (item) => (
+        <div className="inline-block text-right text-xs space-y-1">
+          {item.documentedExpiryDate && (
+            <div className="flex items-center gap-x-2">
+              <span className="font-medium text-gray-500">الموثق:</span>
+              <span className={getRemainingPeriodClass(item.documentedExpiryDate)}>
+                {calculateRemainingPeriod(item.documentedExpiryDate)}
+              </span>
+            </div>
+          )}
+          {item.internalExpiryDate && (
+             <div className="flex items-center gap-x-2">
+              <span className="font-medium text-gray-500">البيني:</span>
+              <span className={getRemainingPeriodClass(item.internalExpiryDate)}>
+                {calculateRemainingPeriod(item.internalExpiryDate)}
+              </span>
+            </div>
+          )}
+        </div>
+      ),
+      exportValue: (item) => {
+        const docText = item.documentedExpiryDate ? `الموثق: ${calculateRemainingPeriod(item.documentedExpiryDate)}` : '';
+        const internalText = item.internalExpiryDate ? `البيني: ${calculateRemainingPeriod(item.internalExpiryDate)}` : '';
+        return [docText, internalText].filter(Boolean).join(' | ');
+      }
+    },
+    { 
+      key: 'documentedCost', 
+      header: 'التكلفة', 
+      headerClassName: baseHeaderClass,
+      cellClassName: baseCellClass,
+      render: (item) => (
+        <div className="inline-block text-right text-xs space-y-1">
+          {item.documentedCost != null && (
+            <div className="flex items-center gap-x-2 justify-center">
+              <span className="font-medium text-gray-500">الموثق:</span>
+              <span className="text-gray-900 font-mono">{formatCost(item.documentedCost)}</span>
+            </div>
+          )}
+          {item.internalCost != null && (
+             <div className="flex items-center gap-x-2 justify-center">
+              <span className="font-medium text-gray-500">البيني:</span>
+              <span className="text-gray-900 font-mono">{formatCost(item.internalCost)}</span>
+            </div>
+          )}
+        </div>
+      ),
+      exportValue: (item) => {
+        const docCost = item.documentedCost != null ? `الموثق: ${item.documentedCost}` : '';
+        const internalCost = item.internalCost != null ? `البيني: ${item.internalCost}` : '';
+        return [docCost, internalCost].filter(Boolean).join(' | ');
+      }
+    },
     { key: 'attachments', header: 'المرفقات', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
     { key: 'notes', header: 'الملاحظات', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
     { key: 'actions', header: 'إجراءات', headerClassName: baseHeaderClass, cellClassName: baseCellClass },

@@ -37,9 +37,9 @@ export const MOCK_SPECIAL_AGENCIES: License[] = [
 ];
 
 export const MOCK_LEASE_CONTRACTS: Contract[] = [
-    { id: 1, name: 'عقد إيجار المكتب الرئيسي', number: 'LC-HQ-001', internalExpiryDate: '2025-12-31', documentedExpiryDate: '2025-12-31', contractType: ContractType.DocumentedAndInternal, status: RecordStatus.Active, cost: 250000, notes: 'زيادة سنوية 5%', attachments: [] },
-    { id: 2, name: 'عقد إيجار المستودع', number: 'LC-WH-002', internalExpiryDate: '2024-11-30', documentedExpiryDate: '2024-11-30', contractType: ContractType.Documented, status: RecordStatus.SoonToExpire, cost: 120000, notes: '', attachments: [] },
-    { id: 3, name: 'عقد خدمات النظافة', number: 'SC-CL-003', internalExpiryDate: '2024-08-20', documentedExpiryDate: '2024-08-20', contractType: ContractType.Internal, status: RecordStatus.SoonToExpire, cost: 60000, notes: 'تقييم الخدمة قبل التجديد', attachments: [] },
+    { id: 1, name: 'عقد إيجار المكتب الرئيسي', number: 'LC-HQ-001', internalExpiryDate: '2025-12-31', documentedExpiryDate: '2025-12-31', contractType: ContractType.DocumentedAndInternal, status: RecordStatus.Active, documentedCost: 200000, internalCost: 50000, notes: 'زيادة سنوية 5%', attachments: [] },
+    { id: 2, name: 'عقد إيجار المستودع', number: 'LC-WH-002', internalExpiryDate: '', documentedExpiryDate: '2024-11-30', contractType: ContractType.Documented, status: RecordStatus.SoonToExpire, documentedCost: 120000, notes: '', attachments: [] },
+    { id: 3, name: 'عقد خدمات النظافة', number: 'SC-CL-003', internalExpiryDate: '2024-08-20', documentedExpiryDate: '', contractType: ContractType.Internal, status: RecordStatus.SoonToExpire, internalCost: 60000, notes: 'تقييم الخدمة قبل التجديد', attachments: [] },
 ];
 
 export const MOCK_GENERAL_CONTRACTS: License[] = [

@@ -43,11 +43,13 @@ const RecordForm: React.FC<RecordFormProps> = ({ initialData, type, onSave, onCa
     if (name === 'contractType') {
         setFormData(prev => {
             const updated = { ...prev, contractType: value as ContractType } as Partial<Contract>;
-            // Clear irrelevant date fields to prevent submitting stale data
+            // Clear irrelevant date and cost fields to prevent submitting stale data
             if (value === ContractType.Documented) {
-                updated.internalExpiryDate = ''; 
+                updated.internalExpiryDate = '';
+                updated.internalCost = undefined;
             } else if (value === ContractType.Internal) {
                 updated.documentedExpiryDate = '';
+                updated.documentedCost = undefined;
             }
             return updated;
         });
@@ -204,23 +206,32 @@ const RecordForm: React.FC<RecordFormProps> = ({ initialData, type, onSave, onCa
                 {Object.values(ContractType).map(s => <option key={s} value={s}>{s}</option>)}
             </select>
         </FormField>
-
-        { (data.contractType === ContractType.Documented || data.contractType === ContractType.DocumentedAndInternal) &&
-            <FormField label="تاريخ انتهاء العقد الموثق" htmlFor="documentedExpiryDate">
-              <input type="date" name="documentedExpiryDate" value={data.documentedExpiryDate || ''} onChange={handleChange} className={commonInputClass} required={data.contractType === ContractType.Documented || data.contractType === ContractType.DocumentedAndInternal} />
-            </FormField>
-        }
         
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            { (data.contractType === ContractType.Documented || data.contractType === ContractType.DocumentedAndInternal) &&
+                <FormField label="تاريخ انتهاء العقد الموثق" htmlFor="documentedExpiryDate">
+                  <input type="date" name="documentedExpiryDate" value={data.documentedExpiryDate || ''} onChange={handleChange} className={commonInputClass} required={data.contractType === ContractType.Documented || data.contractType === ContractType.DocumentedAndInternal} />
+                </FormField>
+            }
             { (data.contractType === ContractType.Internal || data.contractType === ContractType.DocumentedAndInternal) &&
                 <FormField label="تاريخ انتهاء العقد البيني" htmlFor="internalExpiryDate">
                   <input type="date" name="internalExpiryDate" value={data.internalExpiryDate || ''} onChange={handleChange} className={commonInputClass} required={data.contractType === ContractType.Internal || data.contractType === ContractType.DocumentedAndInternal} />
                 </FormField>
             }
-            <FormField label="التكلفة" htmlFor="cost">
-              <input type="number" name="cost" value={data.cost || ''} onChange={handleChange} className={commonInputClass} required />
-            </FormField>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            { (data.contractType === ContractType.Documented || data.contractType === ContractType.DocumentedAndInternal) &&
+                <FormField label="تكلفة العقد الموثق" htmlFor="documentedCost">
+                    <input type="number" name="documentedCost" value={data.documentedCost || ''} onChange={handleChange} className={commonInputClass} required={data.contractType === ContractType.Documented || data.contractType === ContractType.DocumentedAndInternal} />
+                </FormField>
+            }
+            { (data.contractType === ContractType.Internal || data.contractType === ContractType.DocumentedAndInternal) &&
+                <FormField label="تكلفة العقد البيني" htmlFor="internalCost">
+                    <input type="number" name="internalCost" value={data.internalCost || ''} onChange={handleChange} className={commonInputClass} required={data.contractType === ContractType.Internal || data.contractType === ContractType.DocumentedAndInternal} />
+                </FormField>
+            }
+        </div>
+
         <FormField label="الملاحظات" htmlFor="notes">
             <textarea name="notes" value={data.notes || ''} onChange={handleChange} className={commonInputClass} rows={3}></textarea>
         </FormField>

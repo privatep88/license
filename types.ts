@@ -46,7 +46,8 @@ export interface Contract {
   status: RecordStatus; // Overall status for filtering/sorting
   documentedStatus?: RecordStatus;
   internalStatus?: RecordStatus;
-  cost: number;
+  documentedCost?: number;
+  internalCost?: number;
   notes?: string;
   attachments?: Attachment[];
 }

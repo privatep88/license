@@ -116,7 +116,7 @@ const ProceduresManagement: React.FC<ProceduresManagementProps> = ({ procedures,
                 {/* Card Header */}
                 <div className="bg-slate-50 p-5 border-b border-gray-200 flex justify-between items-start">
                     <div>
-                        <h3 className="text-lg font-bold text-slate-800">{proc.licenseName}</h3>
+                        <h3 className="text-lg font-bold text-blue-700">{proc.licenseName}</h3>
                         <p className="text-sm text-slate-500 mt-1">{proc.authority}</p>
                     </div>
                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
