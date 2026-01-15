@@ -28,6 +28,7 @@ export interface License {
   id: number;
   name: string;
   number: string;
+  registrationDate?: string;
   expiryDate: string;
   status: RecordStatus;
   renewalType?: RenewalType;
@@ -71,11 +72,11 @@ export interface Procedure {
 
 
 export interface Tab {
-    id: 'licenses' | 'contracts' | 'other' | 'supplierContracts' | 'otherTopics' | 'procedures';
+    id: 'licenses' | 'contracts' | 'other' | 'supplierContracts' | 'otherTopics' | 'procedures' | 'trademarks';
     name: string;
     icon: React.FC;
 }
 
 export type RecordType = License | Contract | Procedure;
 
-export type RecordDataType = 'commercialLicense' | 'operationalLicense' | 'civilDefenseCert' | 'specialAgency' | 'leaseContract' | 'generalContract' | 'procedure' | 'otherTopic';
+export type RecordDataType = 'commercialLicense' | 'operationalLicense' | 'civilDefenseCert' | 'specialAgency' | 'leaseContract' | 'generalContract' | 'procedure' | 'otherTopic' | 'trademarkCert';

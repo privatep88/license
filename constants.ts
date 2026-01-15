@@ -1,7 +1,7 @@
 
 import type { Tab, License, Contract, Procedure } from './types';
 import { RecordStatus, RenewalType, ContractType } from './types';
-import { LicenseIcon, ContractIcon, AgencyIcon, SupplierIcon, OtherTopicsIcon, ProcedureIcon } from './components/icons/TabIcons';
+import { LicenseIcon, ContractIcon, AgencyIcon, SupplierIcon, OtherTopicsIcon, ProcedureIcon, TrademarkIcon } from './components/icons/TabIcons';
 
 export const ADMIN_EMAIL = 'admin@example.com'; // Change this to the actual administrator's email
 
@@ -10,6 +10,7 @@ export const TABS: Tab[] = [
   { id: 'contracts', name: 'العقود الايجارية', icon: ContractIcon },
   { id: 'other', name: 'الوكالات الخاصة', icon: AgencyIcon },
   { id: 'supplierContracts', name: 'عقود الموردين', icon: SupplierIcon },
+  { id: 'trademarks', name: 'العلامات التجارية المسجلة', icon: TrademarkIcon },
   { id: 'otherTopics', name: 'مواضيع أخرى', icon: OtherTopicsIcon },
   { id: 'procedures', name: 'الإجراءات والمتطلبات', icon: ProcedureIcon },
 ];
@@ -45,6 +46,11 @@ export const MOCK_LEASE_CONTRACTS: Contract[] = [
 export const MOCK_GENERAL_CONTRACTS: License[] = [
     { id: 1, name: 'عقد توريد أثاث مكتبي', number: 'SC-GEN-001', expiryDate: '2025-07-20', status: RecordStatus.Active, renewalType: RenewalType.Manual, cost: 45000, notes: 'مراجعة الأسعار سنويا', attachments: [] },
     { id: 2, name: 'عقد خدمات تسويقية', number: 'SC-GEN-002', expiryDate: '2024-10-01', status: RecordStatus.SoonToExpire, renewalType: RenewalType.Automatic, cost: 120000, notes: '', attachments: [] },
+];
+
+export const MOCK_TRADEMARK_CERTS: License[] = [
+    { id: 1, name: 'شهادة تسجيل العلامة التجارية (الشعار)', number: 'TM-001', registrationDate: '2020-01-01', expiryDate: '2030-01-01', status: RecordStatus.Active, cost: 5000, notes: 'تجديد كل 10 سنوات', attachments: [] },
+    { id: 2, name: 'شهادة الاسم التجاري', number: 'TM-002', registrationDate: '2020-06-15', expiryDate: '2025-06-15', status: RecordStatus.Active, cost: 2000, notes: '', attachments: [] },
 ];
 
 export const MOCK_OTHER_TOPICS: License[] = [

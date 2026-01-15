@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import DataTable from './DataTable';
 import type { License, RecordDataType, RecordStatus } from '../types';
@@ -49,9 +48,9 @@ const LicenseManagement: React.FC<LicenseManagementProps> = ({
     l => civilDefenseFilter === 'all' || l.status === civilDefenseFilter
   );
 
-  const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-center align-middle font-medium text-white [&>button]:justify-center";
-  const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center";
-  const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm";
+  const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-center align-middle font-medium text-white text-sm [&>button]:justify-center";
+  const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center text-sm";
+  const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm text-sm";
 
   // FIX: Use the defined LicenseColumn type for strong typing and better readability.
   const baseLicenseColumns: LicenseColumn[] = [
@@ -87,10 +86,17 @@ const LicenseManagement: React.FC<LicenseManagementProps> = ({
     })
   ];
 
+  const titleStyle = "flex items-center gap-3 px-5 py-2.5 bg-[#091526] text-white rounded-xl border-r-4 border-[#eab308] shadow-md hover:shadow-lg transition-all duration-300";
+
   return (
     <div>
       <DataTable
-        title={<div className="flex items-center gap-3"><span className="text-blue-800 h-6 w-6"><LicenseIcon /></span><span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-md font-semibold">الرخص التجارية</span></div>}
+        title={
+            <div className={titleStyle}>
+                <span className="text-[#eab308]"><LicenseIcon /></span>
+                <span className="font-bold text-lg tracking-wide">الرخص التجارية</span>
+            </div>
+        }
         exportFileName="الرخص التجارية"
         data={filteredCommercial}
         columns={commercialLicenseColumns}
@@ -105,7 +111,12 @@ const LicenseManagement: React.FC<LicenseManagementProps> = ({
         }
       />
       <DataTable
-        title={<div className="flex items-center gap-3"><ClipboardListIcon /><span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-md font-semibold">الرخص التشغيلية</span></div>}
+        title={
+            <div className={titleStyle}>
+                <span className="text-[#eab308]"><ClipboardListIcon /></span>
+                <span className="font-bold text-lg tracking-wide">الرخص التشغيلية</span>
+            </div>
+        }
         exportFileName="الرخص التشغيلية"
         data={filteredOperational}
         columns={operationalLicenseColumns}
@@ -120,7 +131,12 @@ const LicenseManagement: React.FC<LicenseManagementProps> = ({
         }
       />
       <DataTable
-        title={<div className="flex items-center gap-3"><ShieldIcon /><span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-md font-semibold">شهادات الدفاع المدني</span></div>}
+        title={
+            <div className={titleStyle}>
+                <span className="text-[#eab308]"><ShieldIcon /></span>
+                <span className="font-bold text-lg tracking-wide">شهادات الدفاع المدني</span>
+            </div>
+        }
         exportFileName="شهادات الدفاع المدني"
         data={filteredCivilDefense}
         columns={civilDefenseCertColumns}

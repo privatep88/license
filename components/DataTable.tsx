@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { RecordStatus, Attachment } from '../types';
@@ -40,8 +41,8 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
       const key = sortConfig.key as keyof T | 'remaining';
 
       if (key === 'remaining') {
-        aValue = a.expiryDate || a.documentedExpiryDate;
-        bValue = b.expiryDate || b.documentedExpiryDate;
+        aValue = calculateRemainingDays(a.expiryDate || a.documentedExpiryDate);
+        bValue = calculateRemainingDays(b.expiryDate || b.documentedExpiryDate);
       } else {
         aValue = a[key];
         bValue = b[key];
@@ -52,7 +53,7 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
       
       let comparison = 0;
       
-      const isDateKey = ['expiryDate', 'documentedExpiryDate', 'internalExpiryDate', 'remaining'].includes(key as string);
+      const isDateKey = ['expiryDate', 'documentedExpiryDate', 'internalExpiryDate', 'registrationDate'].includes(key as string);
       
       if (isDateKey && typeof aValue === 'string' && typeof bValue === 'string') {
           const dateA = new Date(aValue).getTime();
@@ -94,7 +95,6 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
             if (col.exportValue) {
                 value = col.exportValue(item);
             } else if (col.key === 'remaining') {
-                // FIX: Export remaining days as a number for sortability in Excel
                 value = calculateRemainingDays(item.expiryDate || item.documentedExpiryDate);
             } else {
                 value = item[col.key as keyof T];
@@ -106,59 +106,61 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
 
     const ws = XLSX.utils.json_to_sheet(exportData);
     
-    // Auto-fit column widths
+    // Fix: Auto-fit column widths
     const colWidths = exportableColumns.map(col => {
         const key = String(col.key);
-        if (key.toLowerCase().includes('name') || key.toLowerCase().includes('notes')) return { wch: 40 };
-        if (key.toLowerCase().includes('number') || key.toLowerCase().includes('remaining')) return { wch: 25 };
+        if (key.toLowerCase().includes('name') || key.toLowerCase().includes('notes')) return { wch: 45 };
+        if (key.toLowerCase().includes('number')) return { wch: 20 };
+        if (key.toLowerCase().includes('date')) return { wch: 15 };
         return { wch: 20 };
     });
     ws['!cols'] = colWidths;
     
-    if(!ws['!props']) ws['!props'] = {};
-    ws['!props'].RTL = true;
+    // Fix: Set Sheet Direction to Right-to-Left for Arabic support
+    if(!ws['!views']) ws['!views'] = [];
+    ws['!views'].push({ rightToLeft: true });
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Data");
+    XLSX.utils.book_append_sheet(wb, ws, "البيانات");
     XLSX.writeFile(wb, `${exportFileName}.xlsx`);
   };
   
   return (
-    <div className="mb-12">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-4">
-            <h2 className="text-xl font-bold text-gray-700">{title}</h2>
+    <div className="mb-12 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
+        <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+            <h2 className="text-xl font-bold text-gray-800">{title}</h2>
             {filterComponent}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={handleExport}
-              className="flex items-center gap-2 bg-white text-blue-600 border border-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white text-[#334155] border border-[#334155] px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors shadow-sm text-sm font-medium"
             >
               <ExportIcon />
-              تصدير إلى Excel
+              <span>Excel</span>
             </button>
             <button
               onClick={onAdd}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#334155] text-white px-4 py-2 rounded-lg hover:bg-[#1e293b] transition-colors shadow-sm text-sm font-medium"
             >
               <PlusIcon />
-              إضافة جديد
+              <span>إضافة</span>
             </button>
         </div>
       </div>
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
-          <thead className="bg-slate-800">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-[#1e293b]">
             <tr>
               {columns.map((col) => {
                  const isSortable = !['actions', 'attachments'].includes(String(col.key));
                  return (
-                    <th key={String(col.key)} className={col.headerClassName || "whitespace-nowrap px-4 py-3 text-right font-medium text-white"}>
+                    <th key={String(col.key)} className={col.headerClassName || "whitespace-nowrap px-4 py-3 text-center font-medium text-white text-sm"}>
                       {isSortable ? (
-                         <button onClick={() => requestSort(String(col.key))} className="flex items-center gap-1.5 group w-full text-right focus:outline-none">
+                         <button onClick={() => requestSort(String(col.key))} className="flex items-center justify-center gap-1.5 group w-full focus:outline-none hover:text-blue-200 transition-colors">
                             <span>{col.header}</span>
-                            <span className={`transition-opacity ${sortConfig.key === String(col.key) ? 'opacity-100 text-white' : 'opacity-0 group-hover:opacity-70 text-white'}`}>
+                            <span className={`transition-opacity ${sortConfig.key === String(col.key) ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}>
                                 {sortConfig.key === String(col.key)
                                   ? (sortConfig.direction === 'asc' ? <SortAscIcon /> : <SortDescIcon />)
                                   : <SortIcon />}
@@ -172,71 +174,70 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
               })}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
-            {sortedData.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                {columns.map((col) => {
-                  const defaultTdClass = ['name', 'notes'].includes(String(col.key))
-                    ? 'px-4 py-4 text-gray-700 align-middle break-words max-w-sm'
-                    : 'whitespace-nowrap px-4 py-4 text-gray-700 align-middle';
-                  
-                  const tdClass = col.cellClassName || defaultTdClass;
+          <tbody className="divide-y divide-gray-200 bg-white">
+            {sortedData.length > 0 ? (
+                sortedData.map((item) => (
+                <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                    {columns.map((col) => {
+                    const defaultTdClass = ['name', 'notes'].includes(String(col.key))
+                        ? 'px-4 py-3 text-gray-700 align-middle text-sm min-w-[200px]'
+                        : 'whitespace-nowrap px-4 py-3 text-gray-700 align-middle text-sm text-center';
+                    
+                    const tdClass = col.cellClassName || defaultTdClass;
 
-                  return (
-                    <td key={`${item.id}-${String(col.key)}`} className={tdClass}>
-                      {col.render ? (
-                        col.render(item)
-                      ) : col.key === 'actions' ? (
-                        <div className="flex gap-2 justify-center">
-                          <button onClick={() => onEdit(item)} className="text-blue-500 hover:text-blue-700" aria-label="تعديل السجل"><PencilIcon /></button>
-                          <button onClick={() => onDelete(item)} className="text-red-500 hover:text-red-700" aria-label="حذف السجل"><TrashIcon /></button>
-                        </div>
-                      ) : col.key === 'status' && item.status ? (
-                          <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${getStatusClass(item.status)}`}>
-                              {item.status}
-                          </span>
-                      ) : col.key === 'remaining' ? (
-                          <span className={getRemainingPeriodClass(item.expiryDate || item.documentedExpiryDate)}>
-                            {calculateRemainingPeriod(item.expiryDate || item.documentedExpiryDate)}
-                          </span>
-                      ) : col.key === 'attachments' ? (
-                          item.attachments && item.attachments.length > 0 ? (
-                              <div className="flex items-center -space-x-4 justify-center">
-                                  {item.attachments.map((att, index) => (
-                                      <a href={att.data} key={index} target="_blank" rel="noopener noreferrer" title={att.name || 'عرض الملف'}>
-                                          {(() => {
-                                              const type = att.type || '';
-                                              if (type.startsWith('image/')) {
-                                                  return <img src={att.data} alt={att.name || 'Preview'} className="h-10 w-10 object-cover rounded-md border-2 border-white hover:opacity-80 transition-opacity" />;
-                                              }
-                                              if (type === 'application/pdf') {
-                                                  return <PdfIcon />;
-                                              }
-                                              if (type.includes('msword') || type.includes('wordprocessingml')) {
-                                                  return <WordIcon />;
-                                              }
-                                              if (type.includes('ms-excel') || type.includes('spreadsheetml')) {
-                                                  return <ExcelIcon />;
-                                              }
-                                              if (type.includes('ms-powerpoint') || type.includes('presentationml')) {
-                                                  return <PowerPointIcon />;
-                                              }
-                                              return <DocumentIcon />;
-                                          })()}
-                                      </a>
-                                  ))}
-                              </div>
-                          ) : (
-                              <span className="text-gray-400">لا يوجد</span>
-                          )
-                      ) : (
-                        String(item[col.key as keyof T] ?? '')
-                      )}
+                    return (
+                        <td key={`${item.id}-${String(col.key)}`} className={tdClass}>
+                        {col.render ? (
+                            col.render(item)
+                        ) : col.key === 'actions' ? (
+                            <div className="flex gap-3 justify-center">
+                            <button onClick={() => onEdit(item)} className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded transition-colors" title="تعديل"><PencilIcon /></button>
+                            <button onClick={() => onDelete(item)} className="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded transition-colors" title="حذف"><TrashIcon /></button>
+                            </div>
+                        ) : col.key === 'status' && item.status ? (
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusClass(item.status)}`}>
+                                {item.status}
+                            </span>
+                        ) : col.key === 'remaining' ? (
+                            <span className={getRemainingPeriodClass(item.expiryDate || item.documentedExpiryDate)}>
+                                {calculateRemainingPeriod(item.expiryDate || item.documentedExpiryDate)}
+                            </span>
+                        ) : col.key === 'attachments' ? (
+                            item.attachments && item.attachments.length > 0 ? (
+                                <div className="flex items-center gap-1 justify-center flex-wrap max-w-[150px] mx-auto">
+                                    {item.attachments.map((att, index) => (
+                                        <a href={att.data} key={index} target="_blank" rel="noopener noreferrer" title={att.name || 'عرض الملف'} className="hover:scale-110 transition-transform">
+                                            {(() => {
+                                                const type = att.type || '';
+                                                if (type.startsWith('image/')) {
+                                                    return <img src={att.data} alt="file" className="h-8 w-8 object-cover rounded shadow-sm border border-gray-200" />;
+                                                }
+                                                if (type === 'application/pdf') return <div className="h-8 w-8"><PdfIcon /></div>;
+                                                if (type.includes('word')) return <div className="h-8 w-8"><WordIcon /></div>;
+                                                if (type.includes('excel') || type.includes('sheet')) return <div className="h-8 w-8"><ExcelIcon /></div>;
+                                                return <div className="h-8 w-8"><DocumentIcon /></div>;
+                                            })()}
+                                        </a>
+                                    ))}
+                                </div>
+                            ) : (
+                                <span className="text-gray-300 text-xs">-</span>
+                            )
+                        ) : (
+                            String(item[col.key as keyof T] ?? '')
+                        )}
+                        </td>
+                    );
+                    })}
+                </tr>
+                ))
+            ) : (
+                <tr>
+                    <td colSpan={columns.length} className="px-6 py-12 text-center text-gray-500 bg-gray-50">
+                        لا توجد بيانات للعرض
                     </td>
-                  );
-                })}
-              </tr>
-            ))}
+                </tr>
+            )}
           </tbody>
         </table>
       </div>

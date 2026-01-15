@@ -9,7 +9,7 @@ interface StatusFilterProps {
 
 const StatusFilter: React.FC<StatusFilterProps> = ({ value, onChange }) => {
   const options = [
-    { value: 'all', label: 'الكل', activeClass: 'bg-blue-500 text-white border-transparent' },
+    { value: 'all', label: 'الكل', activeClass: 'bg-[#334155] text-white border-transparent' },
     { value: RecordStatus.Active, label: RecordStatus.Active, activeClass: 'bg-green-500 text-white border-transparent' },
     { value: RecordStatus.SoonToExpire, label: RecordStatus.SoonToExpire, activeClass: 'bg-yellow-500 text-white border-transparent' },
     { value: RecordStatus.Expired, label: RecordStatus.Expired, activeClass: 'bg-red-500 text-white border-transparent' },

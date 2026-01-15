@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import type { License, Contract, RecordType, RecordDataType, Procedure, Attachment } from '../types';
 import { RecordStatus, RenewalType, ContractType } from '../types';
@@ -14,7 +15,7 @@ const FormField: React.FC<{ label: string; htmlFor: string; children: React.Reac
     <div className="mb-4">
         <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
         {/* Clone element to add id prop for accessibility */}
-        {React.cloneElement(children as React.ReactElement, { id: htmlFor })}
+        {React.cloneElement(children as React.ReactElement<any>, { id: htmlFor })}
     </div>
 );
 
@@ -156,6 +157,7 @@ const RecordForm: React.FC<RecordFormProps> = ({ initialData, type, onSave, onCa
           type === 'civilDefenseCert' ? "الموضوع" :
           type === 'otherTopic' ? "الموضوع" :
           type === 'generalContract' ? "اسم العقد العام" :
+          type === 'trademarkCert' ? "اسم الشهادة" :
           "اسم الرخصة"
       } htmlFor="name">
           <input type="text" name="name" value={data.name || ''} onChange={handleChange} className={commonInputClass} required />
@@ -166,10 +168,18 @@ const RecordForm: React.FC<RecordFormProps> = ({ initialData, type, onSave, onCa
           type === 'specialAgency' ? "رقم المصادقة" :
           type === 'otherTopic' ? "الرقم" :
           type === 'generalContract' ? "رقم العقد" :
+          type === 'trademarkCert' ? "رقم الشهادة" :
           "رقم الرخصة"
       } htmlFor="number">
         <input type="text" name="number" value={data.number || ''} onChange={handleChange} className={commonInputClass} required />
       </FormField>
+      
+      {type === 'trademarkCert' && (
+        <FormField label="تاريخ التسجيل" htmlFor="registrationDate">
+          <input type="date" name="registrationDate" value={data.registrationDate || ''} onChange={handleChange} className={commonInputClass} />
+        </FormField>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField label="تاريخ الانتهاء" htmlFor="expiryDate">
           <input type="date" name="expiryDate" value={data.expiryDate || ''} onChange={handleChange} className={commonInputClass} required />

@@ -22,8 +22,10 @@ const EmailIcon: React.FC = () => (
 );
 
 const Footer: React.FC = () => {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="bg-gray-800 text-white w-full">
+    <footer className="bg-[#091526] text-white w-full border-t-4 border-[#eab308]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           
@@ -67,10 +69,10 @@ const Footer: React.FC = () => {
       </div>
       
       {/* Bottom Bar */}
-      <div className="bg-gray-900/50 py-4">
+      <div className="bg-[#060e1a] py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center text-center text-sm text-gray-500">
           <p>اعداد وتصميم / خالد الجفري</p>
-          <p className="mt-1">جميع الحقوق محفوظة لـ © {new Date().getFullYear()} SAHER FOR SMART SERVICES</p>
+          <p className="mt-1">جميع الحقوق محفوظة لـ © {currentYear} SAHER FOR SMART SERVICES</p>
         </div>
       </div>
     </footer>

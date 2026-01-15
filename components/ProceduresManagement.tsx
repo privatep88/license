@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import type { Procedure, RecordDataType } from '../types';
@@ -23,13 +24,13 @@ const CopyableField: React.FC<{ label: string; value: string; icon: React.ReactN
   };
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2 text-sm">
-        {icon}
-        <span className="font-medium text-gray-600">{label}:</span>
-        <span className="text-gray-800 font-mono">{value}</span>
+    <div className="flex items-center justify-between group bg-white p-1.5 rounded border border-gray-100 hover:border-blue-100 transition-colors">
+      <div className="flex items-center gap-2 text-sm overflow-hidden">
+        <span className="text-gray-400 flex-shrink-0">{icon}</span>
+        <span className="font-medium text-gray-600 flex-shrink-0">{label}:</span>
+        <span className="text-gray-800 font-mono truncate dir-ltr select-all">{value}</span>
       </div>
-      <button onClick={handleCopy} className="text-gray-500 hover:text-blue-600 transition-colors p-1" aria-label={`Copy ${label}`}>
+      <button onClick={handleCopy} className="text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity p-1" aria-label={`Copy ${label}`}>
         {copied ? <CheckIcon /> : <CopyIcon />}
       </button>
     </div>
@@ -65,7 +66,7 @@ const ProceduresManagement: React.FC<ProceduresManagementProps> = ({ procedures,
         { wch: 25 }, // البريد
         { wch: 20 }, // اسم الموظف
         { wch: 15 }, // رقم الموظف
-        { wch: 40 }, // المتطلبات
+        { wch: 50 }, // المتطلبات
         { wch: 25 }, // اسم الموقع
         { wch: 35 }, // عنوان الموقع
         { wch: 20 }, // المستخدم
@@ -73,38 +74,44 @@ const ProceduresManagement: React.FC<ProceduresManagementProps> = ({ procedures,
         { wch: 40 }, // الملاحظات
       ];
 
+      // Fix: Set Sheet Direction to Right-to-Left
+      if(!ws['!views']) ws['!views'] = [];
+      ws['!views'].push({ rightToLeft: true });
+
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Procedures");
-      
-      if(!ws['!props']) ws['!props'] = {};
-      ws['!props'].RTL = true;
 
       XLSX.writeFile(wb, `الإجراءات والمتطلبات.xlsx`);
   };
 
+  const titleStyle = "flex items-center gap-3 px-5 py-2.5 bg-[#091526] text-white rounded-xl border-r-4 border-[#eab308] shadow-md hover:shadow-lg transition-all duration-300";
+
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="flex items-center gap-3 text-xl font-bold text-gray-700">
-            <span className="text-blue-800 h-6 w-6"><ProcedureIcon /></span>
-            <span>
-                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-md font-semibold">الإجراءات والمتطلبات</span> لتجديد الرخص / الأنشطة / العقود / الشهادات / الوكالات - والمواضيع الأخرى
-            </span>
-        </h2>
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div className="flex flex-col gap-2">
+            <div className={titleStyle}>
+                <span className="text-[#eab308]"><ProcedureIcon /></span>
+                <span className="font-bold text-lg tracking-wide">الإجراءات والمتطلبات</span>
+            </div>
+            <p className="text-gray-500 text-sm mt-1 pr-2">
+                 لتجديد الرخص / الأنشطة / العقود / الشهادات / الوكالات - والمواضيع الأخرى
+            </p>
+        </div>
+        <div className="flex items-center gap-3 self-end md:self-center">
             <button
               onClick={handleExport}
-              className="flex items-center gap-2 bg-white text-blue-600 border border-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+              className="flex items-center gap-2 bg-white text-[#334155] border border-[#334155] px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors shadow-sm text-sm font-medium"
             >
               <ExportIcon />
-              تصدير إلى Excel
+              <span>Excel</span>
             </button>
             <button
               onClick={() => onAdd('procedure')}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 bg-[#334155] text-white px-4 py-2 rounded-lg hover:bg-[#1e293b] transition-colors shadow-sm text-sm font-medium"
             >
               <PlusIcon />
-              إضافة جديد
+              <span>إضافة جديد</span>
             </button>
         </div>
       </div>
@@ -112,38 +119,44 @@ const ProceduresManagement: React.FC<ProceduresManagementProps> = ({ procedures,
       {procedures.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {procedures.map(proc => (
-            <div key={proc.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden group transition-shadow hover:shadow-lg flex flex-col">
+            <div key={proc.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col">
                 {/* Card Header */}
-                <div className="bg-slate-50 p-5 border-b border-gray-200 flex justify-between items-start">
+                <div className="bg-slate-50 p-5 border-b border-gray-100 flex justify-between items-start">
                     <div>
-                        <h3 className="text-lg font-bold text-blue-700">{proc.licenseName}</h3>
-                        <p className="text-sm text-slate-500 mt-1">{proc.authority}</p>
+                        <h3 className="text-lg font-bold text-[#1d4ed8] leading-snug">{proc.licenseName}</h3>
+                        <div className="flex items-center gap-2 mt-2 text-sm text-slate-500 font-medium">
+                            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                            {proc.authority}
+                        </div>
                     </div>
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <button onClick={() => onEdit(proc, 'procedure')} className="p-2 bg-white rounded-full shadow text-blue-500 hover:bg-blue-50" aria-label="تعديل"><PencilIcon /></button>
-                         <button onClick={() => onDelete(proc, 'procedure')} className="p-2 bg-white rounded-full shadow text-red-500 hover:bg-red-50" aria-label="حذف"><TrashIcon /></button>
+                    <div className="flex gap-2">
+                         <button onClick={() => onEdit(proc, 'procedure')} className="p-2 bg-white border border-gray-200 rounded-lg text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all" aria-label="تعديل"><PencilIcon /></button>
+                         <button onClick={() => onDelete(proc, 'procedure')} className="p-2 bg-white border border-gray-200 rounded-lg text-red-500 hover:bg-red-50 hover:border-red-200 transition-all" aria-label="حذف"><TrashIcon /></button>
                     </div>
                 </div>
 
                 {/* Card Body */}
-                <div className="p-5 flex-grow space-y-5">
+                <div className="p-5 flex-grow space-y-6">
                     {(proc.contactNumbers || proc.email || proc.employeeName || proc.employeeNumber) && (
                         <div>
-                            <h4 className="text-sm font-semibold text-gray-600 mb-2 border-b pb-1">معلومات التواصل</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-3 text-sm">
-                                {proc.contactNumbers && <div className="flex items-center gap-2"><PhoneIcon /><span className="text-gray-700">{proc.contactNumbers}</span></div>}
-                                {proc.email && <div className="flex items-center gap-2"><MailIcon /><a href={`mailto:${proc.email}`} className="text-blue-600 hover:underline truncate">{proc.email}</a></div>}
-                                {proc.employeeName && <div className="flex items-center gap-2"><UserIcon /><span className="text-gray-700">{proc.employeeName}</span></div>}
-                                {proc.employeeNumber && <div className="flex items-center gap-2"><UserIcon /><span className="font-medium text-gray-500">الرقم:</span><span className="text-gray-700">{proc.employeeNumber}</span></div>}
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">معلومات التواصل</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                {proc.contactNumbers && <div className="flex items-center gap-2 text-gray-700 bg-gray-50 p-2 rounded"><PhoneIcon /><span dir="ltr">{proc.contactNumbers}</span></div>}
+                                {proc.email && <div className="flex items-center gap-2 text-gray-700 bg-gray-50 p-2 rounded"><MailIcon /><a href={`mailto:${proc.email}`} className="text-blue-600 hover:underline truncate">{proc.email}</a></div>}
+                                {proc.employeeName && <div className="flex items-center gap-2 text-gray-700 bg-gray-50 p-2 rounded"><UserIcon /><span>{proc.employeeName}</span></div>}
+                                {proc.employeeNumber && <div className="flex items-center gap-2 text-gray-700 bg-gray-50 p-2 rounded"><UserIcon /><span className="text-gray-400">#</span><span>{proc.employeeNumber}</span></div>}
                             </div>
                         </div>
                     )}
 
                     {(proc.websiteName || proc.websiteUrl || proc.username || proc.password) && (
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200/80">
-                            <h4 className="font-semibold text-gray-700 mb-3">{proc.websiteName || 'الموقع الالكتروني'}</h4>
-                            <div className="space-y-2">
-                                {proc.websiteUrl && <div className="flex items-center gap-3 text-sm"> <GlobeIcon /> <a href={proc.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">{proc.websiteUrl}</a> </div>}
+                        <div>
+                             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">بيانات الدخول</h4>
+                             <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+                                <div className="flex items-center justify-between mb-2">
+                                     <span className="font-semibold text-gray-700">{proc.websiteName || 'الموقع الالكتروني'}</span>
+                                     {proc.websiteUrl && <a href={proc.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800"><GlobeIcon /></a>}
+                                </div>
                                 {proc.username && <CopyableField label="المستخدم" value={proc.username} icon={<UserIcon />} />}
                                 {proc.password && <CopyableField label="المرور" value={proc.password} icon={<KeyIcon />} />}
                             </div>
@@ -152,8 +165,8 @@ const ProceduresManagement: React.FC<ProceduresManagementProps> = ({ procedures,
 
                     {proc.requirements && (
                         <div>
-                            <h4 className="text-sm font-semibold text-gray-600 mb-2">المتطلبات:</h4>
-                            <div className="text-sm text-blue-900 bg-blue-50/80 p-3 rounded-lg border border-blue-200/60 whitespace-pre-wrap font-mono">
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">المتطلبات</h4>
+                            <div className="text-sm text-gray-700 bg-blue-50/50 p-3 rounded-lg border border-blue-100 whitespace-pre-line leading-relaxed">
                                 {proc.requirements}
                             </div>
                         </div>
@@ -161,8 +174,8 @@ const ProceduresManagement: React.FC<ProceduresManagementProps> = ({ procedures,
 
                     {proc.notes && (
                         <div>
-                            <h4 className="text-sm font-semibold text-gray-600 mb-2">ملاحظات:</h4>
-                            <div className="text-sm text-yellow-900 bg-yellow-50/80 p-3 rounded-lg border border-yellow-200/60">
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">ملاحظات</h4>
+                            <div className="text-sm text-gray-700 bg-yellow-50/50 p-3 rounded-lg border border-yellow-100 whitespace-pre-line leading-relaxed">
                                 {proc.notes}
                             </div>
                         </div>
@@ -171,21 +184,20 @@ const ProceduresManagement: React.FC<ProceduresManagementProps> = ({ procedures,
                 
                 {/* Card Footer for Attachments */}
                 {proc.attachments && proc.attachments.length > 0 && (
-                    <div className="p-5 mt-auto border-t border-gray-200 bg-slate-50/50">
-                        <h4 className="text-sm font-semibold text-gray-600 mb-3">المرفقات:</h4>
-                        <div className="space-y-2">
+                    <div className="px-5 py-4 mt-auto border-t border-gray-100 bg-gray-50/30">
+                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">المرفقات</h4>
+                        <div className="flex flex-wrap gap-2">
                         {proc.attachments.map((att, index) => (
-                             <a key={index} href={att.data} target="_blank" rel="noopener noreferrer" title={att.name || 'عرض الملف'} className="flex items-center gap-3 text-sm text-blue-600 hover:text-blue-800 transition p-2 bg-white border rounded-md">
+                             <a key={index} href={att.data} target="_blank" rel="noopener noreferrer" title={att.name || 'عرض الملف'} className="flex items-center gap-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 hover:border-blue-300 hover:text-blue-600 transition-colors p-1.5 pr-3 rounded-md shadow-sm">
                                 {(() => {
                                     const type = att.type || '';
-                                    if (type.startsWith('image/')) { return <img src={att.data} alt={att.name || 'Preview'} className="h-10 w-10 object-cover rounded-md border flex-shrink-0" />; }
-                                    if (type === 'application/pdf') { return <PdfIcon />; }
-                                    if (type.includes('msword') || type.includes('wordprocessingml')) { return <WordIcon />; }
-                                    if (type.includes('ms-excel') || type.includes('spreadsheetml')) { return <ExcelIcon />; }
-                                    if (type.includes('ms-powerpoint') || type.includes('presentationml')) { return <PowerPointIcon />; }
-                                    return <DocumentIcon />;
+                                    if (type.startsWith('image/')) { return <img src={att.data} alt="img" className="h-6 w-6 object-cover rounded flex-shrink-0" />; }
+                                    if (type === 'application/pdf') { return <div className="h-6 w-6"><PdfIcon /></div>; }
+                                    if (type.includes('word')) { return <div className="h-6 w-6"><WordIcon /></div>; }
+                                    if (type.includes('excel')) { return <div className="h-6 w-6"><ExcelIcon /></div>; }
+                                    return <div className="h-6 w-6"><DocumentIcon /></div>;
                                 })()}
-                                 <span className="truncate">{att.name || 'عرض الملف'}</span>
+                                 <span className="truncate max-w-[150px]">{att.name || 'ملف'}</span>
                              </a>
                         ))}
                         </div>
@@ -195,9 +207,10 @@ const ProceduresManagement: React.FC<ProceduresManagementProps> = ({ procedures,
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 text-gray-500">
-            <p>لا توجد إجراءات مسجلة حالياً.</p>
-            <p className="mt-2">انقر على "إضافة جديد" لبدء إضافة السجلات.</p>
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed border-gray-300 text-gray-500">
+            <ProcedureIcon />
+            <p className="mt-4 text-lg font-medium">لا توجد إجراءات مسجلة حالياً</p>
+            <p className="mt-1 text-sm">انقر على "إضافة جديد" لبدء إضافة السجلات الخاصة بالخدمات والجهات الحكومية.</p>
         </div>
       )}
     </div>

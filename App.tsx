@@ -1,5 +1,8 @@
+
+
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
+import SecondaryHeader from './components/SecondaryHeader';
 import LicenseManagement from './components/LicenseManagement';
 import ContractManagement from './components/ContractManagement';
 import SpecialAgenciesManagement from './components/OtherTopics';
@@ -9,10 +12,11 @@ import RecordForm from './components/RecordForm';
 import Footer from './components/Footer';
 import type { Tab, RecordType, RecordDataType, License, Contract, Procedure } from './types';
 import { RecordStatus } from './types';
-import { TABS, MOCK_COMMERCIAL_LICENSES, MOCK_OPERATIONAL_LICENSES, MOCK_CIVIL_DEFENSE_CERTS, MOCK_SPECIAL_AGENCIES, MOCK_LEASE_CONTRACTS, MOCK_GENERAL_CONTRACTS, MOCK_PROCEDURES, ADMIN_EMAIL, MOCK_OTHER_TOPICS } from './constants';
+import { TABS, MOCK_COMMERCIAL_LICENSES, MOCK_OPERATIONAL_LICENSES, MOCK_CIVIL_DEFENSE_CERTS, MOCK_SPECIAL_AGENCIES, MOCK_LEASE_CONTRACTS, MOCK_GENERAL_CONTRACTS, MOCK_PROCEDURES, ADMIN_EMAIL, MOCK_OTHER_TOPICS, MOCK_TRADEMARK_CERTS } from './constants';
 import OtherTopicsContent from './components/OtherTopicsContent';
 import ProceduresManagement from './components/ProceduresManagement';
 import NotificationBanner from './components/NotificationBanner';
+import TrademarkManagement from './components/TrademarkManagement';
 
 const getOverallStatus = (statuses: (RecordStatus | undefined)[]): RecordStatus => {
     const validStatuses = statuses.filter(Boolean) as RecordStatus[];
@@ -37,6 +41,7 @@ const App: React.FC = () => {
   const [generalContracts, setGeneralContracts] = useState<License[]>([]);
   const [procedures, setProcedures] = useState<Procedure[]>([]);
   const [otherTopicsData, setOtherTopicsData] = useState<License[]>([]);
+  const [trademarkCerts, setTrademarkCerts] = useState<License[]>([]);
   
   // Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -91,6 +96,7 @@ const App: React.FC = () => {
       ...MOCK_LEASE_CONTRACTS,
       ...MOCK_GENERAL_CONTRACTS,
       ...MOCK_OTHER_TOPICS,
+      ...MOCK_TRADEMARK_CERTS,
     ];
 
     const today = new Date().toISOString().split('T')[0];
@@ -142,6 +148,7 @@ const App: React.FC = () => {
     setGeneralContracts(processLicenses(MOCK_GENERAL_CONTRACTS));
     setProcedures(MOCK_PROCEDURES);
     setOtherTopicsData(processLicenses(MOCK_OTHER_TOPICS));
+    setTrademarkCerts(processLicenses(MOCK_TRADEMARK_CERTS));
 }, []);
 
 
@@ -174,6 +181,7 @@ const App: React.FC = () => {
         generalContract: setGeneralContracts,
         procedure: setProcedures,
         otherTopic: setOtherTopicsData,
+        trademarkCert: setTrademarkCerts,
     };
 
     const setter = setters[type];
@@ -231,6 +239,7 @@ const App: React.FC = () => {
       specialAgency: setSpecialAgencies,
       generalContract: setGeneralContracts,
       otherTopic: setOtherTopicsData,
+      trademarkCert: setTrademarkCerts,
     };
     
     if (type && type in licenseSetters) {
@@ -287,6 +296,12 @@ const App: React.FC = () => {
   );
   
   const filteredOtherTopicsData = otherTopicsData.filter(item =>
+    item.name.toLowerCase().includes(lowercasedQuery) ||
+    item.number.toLowerCase().includes(lowercasedQuery) ||
+    item.notes?.toLowerCase().includes(lowercasedQuery)
+  );
+  
+  const filteredTrademarkCerts = trademarkCerts.filter(item =>
     item.name.toLowerCase().includes(lowercasedQuery) ||
     item.number.toLowerCase().includes(lowercasedQuery) ||
     item.notes?.toLowerCase().includes(lowercasedQuery)
@@ -375,6 +390,13 @@ const App: React.FC = () => {
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                 />;
+      case 'trademarks':
+        return <TrademarkManagement
+                    certificates={filteredTrademarkCerts}
+                    onAdd={handleAdd}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                />;
       default:
         return <LicenseManagement 
                     commercialLicenses={filteredCommercialLicenses}
@@ -393,6 +415,12 @@ const App: React.FC = () => {
         searchQuery={searchQuery}
         onSearchChange={(e) => setSearchQuery(e.target.value)}
       />
+      
+      <SecondaryHeader 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+      />
+
       {showNotification && expiringItems.length > 0 && (
           <NotificationBanner 
               count={expiringItems.length}
@@ -402,28 +430,7 @@ const App: React.FC = () => {
       )}
       <main className="flex-grow p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <nav className="flex items-center gap-3" aria-label="Tabs">
-              {TABS.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab.id === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab)}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                      isActive
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-blue-600 shadow-sm'
-                    }`}
-                  >
-                    <Icon />
-                    <span>{tab.name}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
+          {/* Previous Nav was here, now removed */}
           
           <div className="bg-white p-6 rounded-xl shadow-sm">
             {renderContent()}
