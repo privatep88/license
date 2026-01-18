@@ -1,11 +1,11 @@
 
 import React, { useState, useMemo } from 'react';
 import DataTable from './DataTable';
-import StatusFilter from './StatusFilter';
 import type { License, Contract, RecordDataType, RecordType } from '../types';
 import { RecordStatus } from '../types';
 import { AllRecordsIcon } from './icons/TabIcons';
-import { formatCost, calculateRemainingDays } from '../utils';
+import { CheckIcon, ClipboardListIcon } from './icons/ActionIcons';
+import { formatCost, calculateRemainingDays, getStatusWeight } from '../utils';
 
 interface AllRecordsManagementProps {
     commercialLicenses: License[];
@@ -24,10 +24,9 @@ interface AllRecordsManagementProps {
 interface UnifiedRecord extends License {
     originalType: RecordDataType;
     recordTypeLabel: string;
-    // For contracts that might have different cost structure
     displayCost: number;
-    // Helper to store original object for actions
     originalRecord: RecordType;
+    subDetail?: string; // For displaying extra info like Contract Type or Renewal Type
 }
 
 const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
@@ -42,64 +41,101 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
     onEdit,
     onDelete
 }) => {
-    const [statusFilter, setStatusFilter] = useState<RecordStatus | 'all'>('all');
+    // Removed activeFilter state since cards are for display only now
 
-    // Merge and normalize data
+    // Merge and normalize data accurately
     const unifiedData: UnifiedRecord[] = useMemo(() => {
-        const mapLicense = (list: License[], type: RecordDataType, label: string): UnifiedRecord[] => 
+        // Helper for standard licenses
+        const mapLicense = (list: License[], type: RecordDataType, label: string, extraInfoField?: keyof License): UnifiedRecord[] => 
             list.map(item => ({
                 ...item,
                 originalType: type,
                 recordTypeLabel: label,
                 displayCost: item.cost,
-                originalRecord: item
+                originalRecord: item,
+                subDetail: extraInfoField && item[extraInfoField] ? String(item[extraInfoField]) : undefined
             }));
 
+        // Helper for contracts (Complex mapping)
         const mapContracts = (list: Contract[], type: RecordDataType, label: string): UnifiedRecord[] => 
             list.map(item => ({
-                // Map Contract to UnifiedRecord (which extends License)
                 id: item.id,
                 name: item.name,
                 number: item.number,
-                // Use documented date as primary, fallback to internal
+                // Logic: Prefer Documented Expiry, fallback to Internal. This ensures we always have a date for sorting/filtering.
                 expiryDate: item.documentedExpiryDate || item.internalExpiryDate, 
                 status: item.status, 
                 renewalType: undefined,
-                // Sum costs or pick one
+                // Logic: Sum costs for total value
                 cost: (item.documentedCost || 0) + (item.internalCost || 0),
                 displayCost: (item.documentedCost || 0) + (item.internalCost || 0),
                 notes: item.notes,
                 attachments: item.attachments,
                 originalType: type,
                 recordTypeLabel: label,
-                originalRecord: item
+                originalRecord: item,
+                subDetail: item.contractType // Show Contract Type (Documented/Internal) as detail
             }));
 
-        return [
+        const allData = [
             ...mapLicense(commercialLicenses, 'commercialLicense', 'رخصة تجارية'),
             ...mapLicense(operationalLicenses, 'operationalLicense', 'رخصة تشغيلية'),
             ...mapLicense(civilDefenseCerts, 'civilDefenseCert', 'دفاع مدني'),
             ...mapContracts(leaseContracts, 'leaseContract', 'عقد إيجار'),
-            ...mapLicense(generalContracts, 'generalContract', 'عقد موردين'),
+            ...mapLicense(generalContracts, 'generalContract', 'عقد موردين', 'renewalType'), // Show Renewal Type
             ...mapLicense(specialAgencies, 'specialAgency', 'وكالة خاصة'),
-            ...mapLicense(trademarkCerts, 'trademarkCert', 'علامة تجارية'),
+            ...mapLicense(trademarkCerts, 'trademarkCert', 'علامة تجارية', 'registrationDate'), // Show Registration Date if needed
             ...mapLicense(otherTopics, 'otherTopic', 'موضوع آخر'),
         ];
+
+        return allData;
+
     }, [commercialLicenses, operationalLicenses, civilDefenseCerts, leaseContracts, generalContracts, specialAgencies, trademarkCerts, otherTopics]);
 
-    const filteredData = useMemo(() => {
-        if (statusFilter === 'all') return unifiedData;
-        return unifiedData.filter(item => item.status === statusFilter);
-    }, [unifiedData, statusFilter]);
+    // Calculate Statistics based on the Unified Data
+    const stats = useMemo(() => {
+        return {
+            all: unifiedData.length,
+            active: unifiedData.filter(i => i.status === RecordStatus.Active).length,
+            soon: unifiedData.filter(i => i.status === RecordStatus.SoonToExpire).length,
+            expired: unifiedData.filter(i => i.status === RecordStatus.Expired).length,
+        };
+    }, [unifiedData]);
 
     const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-center align-middle font-medium text-white text-sm [&>button]:justify-center";
     const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center text-sm";
     const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm text-sm";
 
     const columns: { key: keyof UnifiedRecord | 'actions' | 'remaining' | 'attachments' | 'serial'; header: string; render?: (item: UnifiedRecord) => React.ReactNode; exportValue?: (item: UnifiedRecord) => string | number | null | undefined; headerClassName?: string; cellClassName?: string; }[] = [
-        { key: 'serial', header: '#', headerClassName: baseHeaderClass, cellClassName: "whitespace-nowrap px-2 py-4 text-gray-500 font-bold align-middle text-center text-xs bg-slate-50" },
-        { key: 'recordTypeLabel', header: 'نوع السجل', headerClassName: baseHeaderClass, cellClassName: "whitespace-nowrap px-2 py-4 font-semibold text-blue-800 align-middle text-center text-xs bg-blue-50/50" },
-        { key: 'name', header: 'الاسم / الموضوع', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
+        { 
+            key: 'serial', 
+            header: '#', 
+            headerClassName: "whitespace-nowrap px-2 py-3 text-center align-middle font-medium text-white text-sm w-12", 
+            // Fixed serial column style
+            cellClassName: "whitespace-nowrap px-2 py-4 text-gray-500 font-bold align-middle text-center text-xs bg-slate-50 border-l border-slate-100" 
+        },
+        { 
+            key: 'recordTypeLabel', 
+            header: 'نوع السجل', 
+            headerClassName: baseHeaderClass, 
+            cellClassName: "whitespace-nowrap px-2 py-4 font-semibold text-blue-800 align-middle text-center text-xs bg-blue-50/50" 
+        },
+        { 
+            key: 'name', 
+            header: 'الاسم / الموضوع', 
+            headerClassName: baseHeaderClass, 
+            cellClassName: wideCellClass,
+            render: (item) => (
+                <div className="flex flex-col items-center justify-center">
+                    <span className="font-medium text-gray-900">{item.name}</span>
+                    {item.subDetail && (
+                        <span className="text-[10px] text-gray-500 mt-1 bg-gray-100 px-2 py-0.5 rounded-full">
+                            {item.subDetail}
+                        </span>
+                    )}
+                </div>
+            )
+        },
         { key: 'number', header: 'الرقم', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
         { key: 'expiryDate', header: 'تاريخ الانتهاء', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
         { key: 'status', header: 'الحالة', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
@@ -116,27 +152,85 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
 
     const titleStyle = "flex items-center gap-3 px-5 py-2.5 bg-[#091526] text-white rounded-xl border-r-4 border-[#eab308] shadow-md hover:shadow-lg transition-all duration-300";
 
+    // Reusable Filter Card Component - DISPLAY ONLY (No filtering logic)
+    const FilterCard = ({ 
+        label, 
+        count, 
+        colorClass, 
+        icon 
+    }: { 
+        label: string, 
+        count: number, 
+        colorClass: string, 
+        icon: React.ReactNode 
+    }) => (
+        <div
+            className={`
+                relative overflow-hidden flex items-center justify-between p-4 rounded-xl border bg-white border-gray-100 shadow-sm
+            `}
+        >
+            <div className="flex flex-col items-start z-10">
+                <span className="text-sm font-bold mb-1 text-gray-500">{label}</span>
+                <span className="text-2xl font-extrabold text-gray-900">{count}</span>
+            </div>
+            <div className={`
+                w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm
+                ${colorClass}
+            `}>
+                {icon}
+            </div>
+             {/* Simple Background decoration */}
+             <div className="absolute right-0 top-0 w-16 h-full opacity-5 bg-current transform skew-x-12 text-gray-500" />
+        </div>
+    );
+
     return (
-        <DataTable
-            title={
-                <div className={titleStyle}>
-                    <span className="text-[#eab308]"><AllRecordsIcon /></span>
-                    <span className="font-bold text-lg tracking-wide">جميع السجلات</span>
-                </div>
-            }
-            exportFileName="جميع_السجلات"
-            data={filteredData}
-            columns={columns}
-            // No onAdd for aggregate view
-            onEdit={(item) => onEdit(item.originalRecord, item.originalType)}
-            onDelete={(item) => onDelete(item.originalRecord, item.originalType)}
-            filterComponent={
-                <StatusFilter
-                    value={statusFilter}
-                    onChange={(val) => setStatusFilter(val)}
+        <div>
+            {/* Innovative Filter Dashboard (Display Only) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <FilterCard 
+                    label="جميع السجلات" 
+                    count={stats.all} 
+                    colorClass="bg-blue-500"
+                    icon={<AllRecordsIcon />}
                 />
-            }
-        />
+                <FilterCard 
+                    label="السجلات النشطة" 
+                    count={stats.active} 
+                    colorClass="bg-green-500"
+                    icon={<CheckIcon />}
+                />
+                 <FilterCard 
+                    label="قاربت على الانتهاء" 
+                    count={stats.soon} 
+                    colorClass="bg-yellow-500"
+                    icon={<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                />
+                <FilterCard 
+                    label="السجلات المنتهية" 
+                    count={stats.expired} 
+                    colorClass="bg-red-500"
+                    icon={<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>}
+                />
+            </div>
+
+            <DataTable
+                title={
+                    <div className={titleStyle}>
+                        <span className="text-[#eab308]"><ClipboardListIcon /></span>
+                        <span className="font-bold text-lg tracking-wide">
+                            قائمة جميع السجلات
+                        </span>
+                    </div>
+                }
+                exportFileName="جميع_السجلات"
+                data={unifiedData} // Show all data always
+                columns={columns}
+                onEdit={(item) => onEdit(item.originalRecord, item.originalType)}
+                onDelete={(item) => onDelete(item.originalRecord, item.originalType)}
+                disableSorting={true}
+            />
+        </div>
     );
 };
 

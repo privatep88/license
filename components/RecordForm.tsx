@@ -21,13 +21,31 @@ const FormField: React.FC<{ label: string; htmlFor: string; children: React.Reac
 
 const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
 
-const FilePreviewIcon: React.FC<{ type: string }> = ({ type }) => {
+const FilePreviewIcon: React.FC<{ type: string, name: string }> = ({ type, name }) => {
     const iconContainerClass = "h-12 w-12 flex items-center justify-center bg-gray-100 rounded-md flex-shrink-0";
-    if (type === 'application/pdf') return <div className={iconContainerClass}><PdfIcon /></div>;
-    if (type.includes('msword') || type.includes('wordprocessingml')) return <div className={iconContainerClass}><WordIcon /></div>;
-    if (type.includes('ms-excel') || type.includes('spreadsheetml')) return <div className={iconContainerClass}><ExcelIcon /></div>;
-    if (type.includes('ms-powerpoint') || type.includes('presentationml')) return <div className={iconContainerClass}><PowerPointIcon /></div>;
+    
+    const t = (type || '').toLowerCase();
+    const n = (name || '').toLowerCase();
+
+    if (t === 'application/pdf' || n.endsWith('.pdf')) return <div className={iconContainerClass}><PdfIcon /></div>;
+    if (t.includes('word') || t.includes('document') || n.match(/\.(doc|docx)$/)) return <div className={iconContainerClass}><WordIcon /></div>;
+    if (t.includes('excel') || t.includes('sheet') || t.includes('spreadsheet') || n.match(/\.(xls|xlsx|csv)$/)) return <div className={iconContainerClass}><ExcelIcon /></div>;
+    if (t.includes('powerpoint') || t.includes('presentation') || n.match(/\.(ppt|pptx)$/)) return <div className={iconContainerClass}><PowerPointIcon /></div>;
+    
     return <div className={iconContainerClass}><DocumentIcon /></div>;
+};
+
+const getReadableFileType = (name: string, type: string): string => {
+    const n = (name || '').toLowerCase();
+    const t = (type || '').toLowerCase();
+    
+    if (t.includes('pdf') || n.endsWith('.pdf')) return 'ملف PDF';
+    if (t.includes('word') || t.includes('document') || n.match(/\.(doc|docx)$/)) return 'مستند Word';
+    if (t.includes('excel') || t.includes('sheet') || t.includes('spreadsheet') || n.match(/\.(xls|xlsx|csv)$/)) return 'ملف Excel';
+    if (t.includes('powerpoint') || t.includes('presentation') || n.match(/\.(ppt|pptx)$/)) return 'عرض PowerPoint';
+    if (t.startsWith('image/') || n.match(/\.(jpg|jpeg|png|gif|webp)$/)) return 'صورة';
+    
+    return 'ملف';
 };
 
 const RecordForm: React.FC<RecordFormProps> = ({ initialData, type, onSave, onCancel }) => {
@@ -112,27 +130,45 @@ const RecordForm: React.FC<RecordFormProps> = ({ initialData, type, onSave, onCa
   const attachmentField = (
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">المرفقات</label>
-        <input
-            type="file"
-            name="attachment-input"
-            multiple
-            accept="image/jpeg,image/png,image/jpg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-            onChange={handleFileChange}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:ml-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-        />
+        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:bg-gray-50 transition-colors">
+            <div className="space-y-1 text-center">
+                <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div className="flex text-sm text-gray-600 justify-center">
+                    <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                        <span>اختر ملفات</span>
+                        <input
+                            id="file-upload"
+                            name="attachment-input"
+                            type="file"
+                            className="sr-only"
+                            multiple
+                            accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                            onChange={handleFileChange}
+                        />
+                    </label>
+                    <p className="pr-1">أو اسحبها هنا</p>
+                </div>
+                <p className="text-xs text-gray-500">
+                    PDF, DOC, DOCX, XLS, PPT, PNG, JPG up to 10MB
+                </p>
+            </div>
+        </div>
+
         {attachmentData.attachments && attachmentData.attachments.length > 0 && (
             <div className="mt-4 space-y-3">
                 {attachmentData.attachments.map((att, index) => (
                      <div key={index} className="flex items-center justify-between gap-4 p-2 border rounded-md bg-gray-50">
                         <a href={att.data} target="_blank" rel="noopener noreferrer" title={`عرض ${att.name}`} className="flex items-center gap-4 flex-grow min-w-0">
-                          {att.type?.startsWith('image/') ? (
+                          {(att.type?.startsWith('image/') || att.name?.match(/\.(jpg|jpeg|png|gif)$/i)) ? (
                               <img src={att.data} alt="Preview" className="h-12 w-12 object-cover rounded-md border" />
                           ) : (
-                              <FilePreviewIcon type={att.type} />
+                              <FilePreviewIcon type={att.type} name={att.name} />
                           )}
                           <div className="flex-grow min-w-0">
                               <p className="text-sm font-medium text-gray-800 truncate hover:underline">{att.name}</p>
-                              <p className="text-xs text-gray-500">{att.type}</p>
+                              <p className="text-xs text-gray-500">{getReadableFileType(att.name, att.type)}</p>
                           </div>
                         </a>
                         <button

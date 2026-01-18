@@ -190,11 +190,15 @@ const ProceduresManagement: React.FC<ProceduresManagementProps> = ({ procedures,
                         {proc.attachments.map((att, index) => (
                              <a key={index} href={att.data} target="_blank" rel="noopener noreferrer" title={att.name || 'عرض الملف'} className="flex items-center gap-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 hover:border-blue-300 hover:text-blue-600 transition-colors p-1.5 pr-3 rounded-md shadow-sm">
                                 {(() => {
-                                    const type = att.type || '';
-                                    if (type.startsWith('image/')) { return <img src={att.data} alt="img" className="h-6 w-6 object-cover rounded flex-shrink-0" />; }
-                                    if (type === 'application/pdf') { return <div className="h-6 w-6"><PdfIcon /></div>; }
-                                    if (type.includes('word')) { return <div className="h-6 w-6"><WordIcon /></div>; }
-                                    if (type.includes('excel')) { return <div className="h-6 w-6"><ExcelIcon /></div>; }
+                                    const type = (att.type || '').toLowerCase();
+                                    const name = (att.name || '').toLowerCase();
+
+                                    if (type.startsWith('image/') || name.match(/\.(jpg|jpeg|png|gif|webp)$/)) { return <img src={att.data} alt="img" className="h-6 w-6 object-cover rounded flex-shrink-0" />; }
+                                    if (type.includes('pdf') || name.endsWith('.pdf')) { return <div className="h-6 w-6"><PdfIcon /></div>; }
+                                    if (type.includes('word') || type.includes('document') || name.match(/\.(doc|docx)$/)) { return <div className="h-6 w-6"><WordIcon /></div>; }
+                                    if (type.includes('excel') || type.includes('sheet') || type.includes('spreadsheet') || name.match(/\.(xls|xlsx|csv)$/)) { return <div className="h-6 w-6"><ExcelIcon /></div>; }
+                                    if (type.includes('powerpoint') || type.includes('presentation') || name.match(/\.(ppt|pptx)$/)) { return <div className="h-6 w-6"><PowerPointIcon /></div>; }
+                                    
                                     return <div className="h-6 w-6"><DocumentIcon /></div>;
                                 })()}
                                  <span className="truncate max-w-[150px]">{att.name || 'ملف'}</span>

@@ -54,7 +54,7 @@ const FileTypeIcon: React.FC<{ color: string, extension: string }> = ({ color, e
         <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#F3F4F6"/>
         <path d="M14 2V8H20L14 2Z" fill="#E5E7EB"/>
         <rect x="7" y="15" width="10" height="4" rx="1" fill={color}/>
-        <text x="12" y="17.5" fill="white" textAnchor="middle" fontSize="2" fontWeight="bold" fontFamily="sans-serif">{extension}</text>
+        <text x="12" y="17" fill="white" textAnchor="middle" dominantBaseline="middle" fontSize="2.8" fontWeight="bold" fontFamily="sans-serif">{extension}</text>
     </svg>
 );
 

@@ -23,13 +23,28 @@ interface DataTableProps<T> {
   onEdit: (item: T) => void;
   onDelete: (item: T) => void;
   filterComponent?: React.ReactNode;
+  disableSorting?: boolean;
+  hideSortIcons?: boolean;
 }
 
-const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: string; documentedExpiryDate?: string; attachments?: Attachment[]; }>({ title, exportFileName, data, columns, onAdd, onEdit, onDelete, filterComponent }: DataTableProps<T>) => {
+const getReadableFileType = (name: string, type: string): string => {
+    const n = (name || '').toLowerCase();
+    const t = (type || '').toLowerCase();
+    
+    if (t.includes('pdf') || n.endsWith('.pdf')) return 'PDF';
+    if (t.includes('word') || t.includes('document') || n.match(/\.(doc|docx)$/)) return 'Word';
+    if (t.includes('excel') || t.includes('sheet') || t.includes('spreadsheet') || n.match(/\.(xls|xlsx|csv)$/)) return 'Excel';
+    if (t.includes('powerpoint') || t.includes('presentation') || n.match(/\.(ppt|pptx)$/)) return 'PPT';
+    if (t.startsWith('image/') || n.match(/\.(jpg|jpeg|png|gif|webp)$/)) return 'صورة';
+    
+    return 'ملف';
+};
+
+const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: string; documentedExpiryDate?: string; attachments?: Attachment[]; }>({ title, exportFileName, data, columns, onAdd, onEdit, onDelete, filterComponent, disableSorting = false, hideSortIcons = false }: DataTableProps<T>) => {
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: null, direction: 'asc' });
 
   const sortedData = useMemo(() => {
-    if (!sortConfig.key) {
+    if (!sortConfig.key || disableSorting) {
       return data;
     }
 
@@ -79,9 +94,10 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
     });
 
     return sortableItems;
-  }, [data, sortConfig]);
+  }, [data, sortConfig, disableSorting]);
 
   const requestSort = (key: string) => {
+    if (disableSorting) return;
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
       direction = 'desc';
@@ -165,17 +181,19 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
           <thead className="bg-[#1e293b]">
             <tr>
               {columns.map((col) => {
-                 const isSortable = !['actions', 'attachments', 'serial'].includes(String(col.key));
+                 const isSortable = !disableSorting && !['actions', 'attachments', 'serial'].includes(String(col.key));
                  return (
                     <th key={String(col.key)} className={col.headerClassName || "whitespace-nowrap px-4 py-3 text-center font-medium text-white text-sm"}>
                       {isSortable ? (
                          <button onClick={() => requestSort(String(col.key))} className="flex items-center justify-center gap-1.5 group w-full focus:outline-none hover:text-blue-200 transition-colors">
                             <span>{col.header}</span>
-                            <span className={`transition-opacity ${sortConfig.key === String(col.key) ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}>
-                                {sortConfig.key === String(col.key)
-                                  ? (sortConfig.direction === 'asc' ? <SortAscIcon /> : <SortDescIcon />)
-                                  : <SortIcon />}
-                            </span>
+                            {!hideSortIcons && (
+                                <span className={`transition-opacity ${sortConfig.key === String(col.key) ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}>
+                                    {sortConfig.key === String(col.key)
+                                      ? (sortConfig.direction === 'asc' ? <SortAscIcon /> : <SortDescIcon />)
+                                      : <SortIcon />}
+                                </span>
+                            )}
                          </button>
                       ) : (
                         <span>{col.header}</span>
@@ -219,15 +237,19 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
                             item.attachments && item.attachments.length > 0 ? (
                                 <div className="flex items-center gap-1 justify-center flex-wrap max-w-[150px] mx-auto">
                                     {item.attachments.map((att, index) => (
-                                        <a href={att.data} key={index} target="_blank" rel="noopener noreferrer" title={att.name || 'عرض الملف'} className="hover:scale-110 transition-transform">
+                                        <a href={att.data} key={index} target="_blank" rel="noopener noreferrer" title={`${att.name || 'عرض الملف'} (${getReadableFileType(att.name, att.type)})`} className="hover:scale-110 transition-transform">
                                             {(() => {
-                                                const type = att.type || '';
-                                                if (type.startsWith('image/')) {
+                                                const type = (att.type || '').toLowerCase();
+                                                const name = (att.name || '').toLowerCase();
+                                                
+                                                if (type.startsWith('image/') || name.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
                                                     return <img src={att.data} alt="file" className="h-8 w-8 object-cover rounded shadow-sm border border-gray-200" />;
                                                 }
-                                                if (type === 'application/pdf') return <div className="h-8 w-8"><PdfIcon /></div>;
-                                                if (type.includes('word')) return <div className="h-8 w-8"><WordIcon /></div>;
-                                                if (type.includes('excel') || type.includes('sheet')) return <div className="h-8 w-8"><ExcelIcon /></div>;
+                                                if (type.includes('pdf') || name.endsWith('.pdf')) return <div className="h-8 w-8"><PdfIcon /></div>;
+                                                if (type.includes('word') || type.includes('document') || name.match(/\.(doc|docx)$/)) return <div className="h-8 w-8"><WordIcon /></div>;
+                                                if (type.includes('excel') || type.includes('sheet') || type.includes('spreadsheet') || name.match(/\.(xls|xlsx|csv)$/)) return <div className="h-8 w-8"><ExcelIcon /></div>;
+                                                if (type.includes('powerpoint') || type.includes('presentation') || name.match(/\.(ppt|pptx)$/)) return <div className="h-8 w-8"><PowerPointIcon /></div>;
+                                                
                                                 return <div className="h-8 w-8"><DocumentIcon /></div>;
                                             })()}
                                         </a>

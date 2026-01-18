@@ -12,7 +12,7 @@ export const TABS: Tab[] = [
   { id: 'other', name: 'الوكالات الخاصة', icon: AgencyIcon },
   { id: 'trademarks', name: 'العلامات التجارية المسجلة', icon: TrademarkIcon },
   { id: 'otherTopics', name: 'مواضيع أخرى', icon: OtherTopicsIcon },
-  { id: 'allRecords', name: 'جميع السجلات', icon: AllRecordsIcon },
+  { id: 'allRecords', name: 'جميع السجلات ( إحصائية )', icon: AllRecordsIcon },
   { id: 'procedures', name: 'الإجراءات والمتطلبات', icon: ProcedureIcon },
 ];
 
