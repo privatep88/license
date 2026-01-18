@@ -12,10 +12,8 @@ interface SecondaryHeaderProps {
 const SecondaryHeader: React.FC<SecondaryHeaderProps> = ({ activeTab, onTabChange, counts }) => {
     return (
         <div className="mt-16">
-            {/* عرض محدد ليكون "أقل طولاً" من الهيدر الرئيسي */}
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="bg-[#091526] border-b-4 border-[#eab308] shadow-lg rounded-2xl overflow-hidden">
-                    {/* تم تغيير overflow-x-auto إلى flex-wrap للسماح بالالتفاف */}
                     <nav className="flex flex-wrap items-center justify-center gap-2 p-3" aria-label="Tabs">
                         {TABS.map((tab) => {
                             const Icon = tab.icon;
