@@ -96,7 +96,8 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
     const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center text-sm";
     const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm text-sm";
 
-    const columns: { key: keyof UnifiedRecord | 'actions' | 'remaining' | 'attachments'; header: string; render?: (item: UnifiedRecord) => React.ReactNode; exportValue?: (item: UnifiedRecord) => string | number | null | undefined; headerClassName?: string; cellClassName?: string; }[] = [
+    const columns: { key: keyof UnifiedRecord | 'actions' | 'remaining' | 'attachments' | 'serial'; header: string; render?: (item: UnifiedRecord) => React.ReactNode; exportValue?: (item: UnifiedRecord) => string | number | null | undefined; headerClassName?: string; cellClassName?: string; }[] = [
+        { key: 'serial', header: '#', headerClassName: baseHeaderClass, cellClassName: "whitespace-nowrap px-2 py-4 text-gray-500 font-bold align-middle text-center text-xs bg-slate-50" },
         { key: 'recordTypeLabel', header: 'نوع السجل', headerClassName: baseHeaderClass, cellClassName: "whitespace-nowrap px-2 py-4 font-semibold text-blue-800 align-middle text-center text-xs bg-blue-50/50" },
         { key: 'name', header: 'الاسم / الموضوع', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
         { key: 'number', header: 'الرقم', headerClassName: baseHeaderClass, cellClassName: baseCellClass },

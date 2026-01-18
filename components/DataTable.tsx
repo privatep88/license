@@ -2,11 +2,11 @@
 import React, { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { RecordStatus, Attachment } from '../types';
-import { PlusIcon, PencilIcon, TrashIcon, DocumentIcon, PdfIcon, WordIcon, ExcelIcon, PowerPointIcon, ExportIcon, SortIcon, SortAscIcon, SortDescIcon } from './icons/ActionIcons';
-import { getStatusClass, calculateRemainingPeriod, getRemainingPeriodClass, calculateRemainingDays } from '../utils';
+import { PlusIcon, PencilIcon, TrashIcon, DocumentIcon, PdfIcon, WordIcon, ExcelIcon, PowerPointIcon, ExportIcon, SortIcon, SortAscIcon, SortDescIcon, ExcelSheetIcon } from './icons/ActionIcons';
+import { getStatusClass, calculateRemainingPeriod, getRemainingPeriodClass, calculateRemainingDays, getStatusWeight } from '../utils';
 
 interface Column<T> {
-  key: keyof T | 'actions' | 'remaining' | 'attachments';
+  key: keyof T | 'actions' | 'remaining' | 'attachments' | 'serial';
   header: string;
   render?: (item: T) => React.ReactNode;
   exportValue?: (item: T) => string | number | null | undefined;
@@ -54,8 +54,14 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
       let comparison = 0;
       
       const isDateKey = ['expiryDate', 'documentedExpiryDate', 'internalExpiryDate', 'registrationDate'].includes(key as string);
-      
-      if (isDateKey && typeof aValue === 'string' && typeof bValue === 'string') {
+      const isStatusKey = key === 'status';
+
+      if (isStatusKey) {
+          const weightA = getStatusWeight(aValue);
+          const weightB = getStatusWeight(bValue);
+          comparison = weightA - weightB;
+      }
+      else if (isDateKey && typeof aValue === 'string' && typeof bValue === 'string') {
           const dateA = new Date(aValue).getTime();
           const dateB = new Date(bValue).getTime();
           if (dateA < dateB) comparison = -1;
@@ -88,7 +94,7 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
       (col) => col.key !== 'actions' && col.key !== 'attachments'
     );
 
-    const exportData = sortedData.map((item) => {
+    const exportData = sortedData.map((item, index) => {
         const row: { [key: string]: any } = {};
         exportableColumns.forEach((col) => {
             let value;
@@ -96,6 +102,8 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
                 value = col.exportValue(item);
             } else if (col.key === 'remaining') {
                 value = calculateRemainingDays(item.expiryDate || item.documentedExpiryDate);
+            } else if (col.key === 'serial') {
+                value = index + 1;
             } else {
                 value = item[col.key as keyof T];
             }
@@ -112,6 +120,7 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
         if (key.toLowerCase().includes('name') || key.toLowerCase().includes('notes')) return { wch: 45 };
         if (key.toLowerCase().includes('number')) return { wch: 20 };
         if (key.toLowerCase().includes('date')) return { wch: 15 };
+        if (String(col.key) === 'serial') return { wch: 5 };
         return { wch: 20 };
     });
     ws['!cols'] = colWidths;
@@ -135,10 +144,10 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
         <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={handleExport}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white text-[#334155] border border-[#334155] px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors shadow-sm text-sm font-medium"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white text-green-700 border border-green-600 px-4 py-2 rounded-lg hover:bg-green-50 transition-colors shadow-sm text-sm font-medium"
             >
-              <ExportIcon />
-              <span>Excel</span>
+              <ExcelSheetIcon />
+              <span>تصدير Excel</span>
             </button>
             {onAdd && (
                 <button
@@ -156,7 +165,7 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
           <thead className="bg-[#1e293b]">
             <tr>
               {columns.map((col) => {
-                 const isSortable = !['actions', 'attachments'].includes(String(col.key));
+                 const isSortable = !['actions', 'attachments', 'serial'].includes(String(col.key));
                  return (
                     <th key={String(col.key)} className={col.headerClassName || "whitespace-nowrap px-4 py-3 text-center font-medium text-white text-sm"}>
                       {isSortable ? (
@@ -178,7 +187,7 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">
             {sortedData.length > 0 ? (
-                sortedData.map((item) => (
+                sortedData.map((item, index) => (
                 <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                     {columns.map((col) => {
                     const defaultTdClass = ['name', 'notes', 'recordTypeLabel'].includes(String(col.key))
@@ -196,6 +205,8 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
                             <button onClick={() => onEdit(item)} className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded transition-colors" title="تعديل"><PencilIcon /></button>
                             <button onClick={() => onDelete(item)} className="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded transition-colors" title="حذف"><TrashIcon /></button>
                             </div>
+                        ) : col.key === 'serial' ? (
+                            <span className="font-bold text-gray-500 text-xs">{index + 1}</span>
                         ) : col.key === 'status' && item.status ? (
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusClass(item.status)}`}>
                                 {item.status}

@@ -1,6 +1,5 @@
 
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Header from './components/Header';
 import SecondaryHeader from './components/SecondaryHeader';
 import LicenseManagement from './components/LicenseManagement';
@@ -319,6 +318,37 @@ const App: React.FC = () => {
     item.notes?.toLowerCase().includes(lowercasedQuery)
   );
 
+  // Calculate Tab Counts
+  const tabCounts = useMemo(() => {
+    return {
+        licenses: filteredCommercialLicenses.length + filteredOperationalLicenses.length + filteredCivilDefenseCerts.length,
+        contracts: filteredLeaseContracts.length,
+        supplierContracts: filteredGeneralContracts.length,
+        other: filteredSpecialAgencies.length,
+        trademarks: filteredTrademarkCerts.length,
+        otherTopics: filteredOtherTopicsData.length,
+        procedures: filteredProcedures.length,
+        allRecords: filteredCommercialLicenses.length + 
+                    filteredOperationalLicenses.length + 
+                    filteredCivilDefenseCerts.length + 
+                    filteredLeaseContracts.length + 
+                    filteredGeneralContracts.length + 
+                    filteredSpecialAgencies.length + 
+                    filteredTrademarkCerts.length + 
+                    filteredOtherTopicsData.length
+    };
+  }, [
+    filteredCommercialLicenses, 
+    filteredOperationalLicenses, 
+    filteredCivilDefenseCerts, 
+    filteredLeaseContracts, 
+    filteredGeneralContracts, 
+    filteredSpecialAgencies, 
+    filteredTrademarkCerts, 
+    filteredOtherTopicsData, 
+    filteredProcedures
+  ]);
+
   const handleSendNotificationEmail = () => {
     const subject = "تنبيه: رخص وعقود على وشك الانتهاء";
     const body = `
@@ -432,7 +462,8 @@ const App: React.FC = () => {
       
       <SecondaryHeader 
         activeTab={activeTab} 
-        onTabChange={setActiveTab} 
+        onTabChange={setActiveTab}
+        counts={tabCounts} 
       />
 
       {showNotification && expiringItems.length > 0 && (

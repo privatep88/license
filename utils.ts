@@ -16,6 +16,16 @@ export const getStatusClass = (status: RecordStatus) => {
   }
 };
 
+export const getStatusWeight = (status: string | RecordStatus | undefined | null): number => {
+    if (!status) return 4;
+    switch (status) {
+        case RecordStatus.Expired: return 1;
+        case RecordStatus.SoonToExpire: return 2;
+        case RecordStatus.Active: return 3;
+        default: return 4;
+    }
+};
+
 export const calculateRemainingDays = (expiryDate: string | undefined): number | null => {
     if (!expiryDate) return null;
     
