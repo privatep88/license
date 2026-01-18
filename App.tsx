@@ -7,6 +7,7 @@ import LicenseManagement from './components/LicenseManagement';
 import ContractManagement from './components/ContractManagement';
 import SpecialAgenciesManagement from './components/OtherTopics';
 import SupplierContractsManagement from './components/SupplierContractsManagement';
+import AllRecordsManagement from './components/AllRecordsManagement';
 import Modal from './components/Modal';
 import RecordForm from './components/RecordForm';
 import Footer from './components/Footer';
@@ -397,6 +398,19 @@ const App: React.FC = () => {
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                 />;
+      case 'allRecords':
+        return <AllRecordsManagement
+                  commercialLicenses={filteredCommercialLicenses}
+                  operationalLicenses={filteredOperationalLicenses}
+                  civilDefenseCerts={filteredCivilDefenseCerts}
+                  leaseContracts={filteredLeaseContracts}
+                  generalContracts={filteredGeneralContracts}
+                  specialAgencies={filteredSpecialAgencies}
+                  trademarkCerts={filteredTrademarkCerts}
+                  otherTopics={filteredOtherTopicsData}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+               />;
       default:
         return <LicenseManagement 
                     commercialLicenses={filteredCommercialLicenses}

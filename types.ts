@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 
 export enum RecordStatus {
@@ -72,7 +73,7 @@ export interface Procedure {
 
 
 export interface Tab {
-    id: 'licenses' | 'contracts' | 'other' | 'supplierContracts' | 'otherTopics' | 'procedures' | 'trademarks';
+    id: 'licenses' | 'contracts' | 'other' | 'supplierContracts' | 'otherTopics' | 'procedures' | 'trademarks' | 'allRecords';
     name: string;
     icon: React.FC;
 }

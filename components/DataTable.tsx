@@ -19,7 +19,7 @@ interface DataTableProps<T> {
   exportFileName: string;
   data: T[];
   columns: Column<T>[];
-  onAdd: () => void;
+  onAdd?: () => void;
   onEdit: (item: T) => void;
   onDelete: (item: T) => void;
   filterComponent?: React.ReactNode;
@@ -140,13 +140,15 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
               <ExportIcon />
               <span>Excel</span>
             </button>
-            <button
-              onClick={onAdd}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#334155] text-white px-4 py-2 rounded-lg hover:bg-[#1e293b] transition-colors shadow-sm text-sm font-medium"
-            >
-              <PlusIcon />
-              <span>إضافة</span>
-            </button>
+            {onAdd && (
+                <button
+                  onClick={onAdd}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#334155] text-white px-4 py-2 rounded-lg hover:bg-[#1e293b] transition-colors shadow-sm text-sm font-medium"
+                >
+                  <PlusIcon />
+                  <span>إضافة</span>
+                </button>
+            )}
         </div>
       </div>
       <div className="overflow-x-auto">
@@ -179,7 +181,7 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
                 sortedData.map((item) => (
                 <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                     {columns.map((col) => {
-                    const defaultTdClass = ['name', 'notes'].includes(String(col.key))
+                    const defaultTdClass = ['name', 'notes', 'recordTypeLabel'].includes(String(col.key))
                         ? 'px-4 py-3 text-gray-700 align-middle text-sm min-w-[200px]'
                         : 'whitespace-nowrap px-4 py-3 text-gray-700 align-middle text-sm text-center';
                     

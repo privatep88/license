@@ -1,7 +1,7 @@
 
 import type { Tab, License, Contract, Procedure } from './types';
 import { RecordStatus, RenewalType, ContractType } from './types';
-import { LicenseIcon, ContractIcon, AgencyIcon, SupplierIcon, OtherTopicsIcon, ProcedureIcon, TrademarkIcon } from './components/icons/TabIcons';
+import { LicenseIcon, ContractIcon, AgencyIcon, SupplierIcon, OtherTopicsIcon, ProcedureIcon, TrademarkIcon, AllRecordsIcon } from './components/icons/TabIcons';
 
 export const ADMIN_EMAIL = 'admin@example.com'; // Change this to the actual administrator's email
 
@@ -12,6 +12,7 @@ export const TABS: Tab[] = [
   { id: 'other', name: 'الوكالات الخاصة', icon: AgencyIcon },
   { id: 'trademarks', name: 'العلامات التجارية المسجلة', icon: TrademarkIcon },
   { id: 'otherTopics', name: 'مواضيع أخرى', icon: OtherTopicsIcon },
+  { id: 'allRecords', name: 'جميع السجلات', icon: AllRecordsIcon },
   { id: 'procedures', name: 'الإجراءات والمتطلبات', icon: ProcedureIcon },
 ];
 
