@@ -29,7 +29,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ searchQuery, onSearchChange }) => {
   return (
-    <header className="bg-[#091526] border-b border-slate-800 shadow-sm relative z-30 print:hidden">
+    <header className="bg-[#091526] border-b-4 border-[#eab308] shadow-sm relative z-30 print:hidden">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-auto py-4 sm:py-0 sm:h-28 gap-4">
           

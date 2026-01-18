@@ -8,8 +8,8 @@ export const ADMIN_EMAIL = 'admin@example.com'; // Change this to the actual adm
 export const TABS: Tab[] = [
   { id: 'licenses', name: 'الرخص التجارية / التشغيلية /الدفاع المدني', icon: LicenseIcon },
   { id: 'contracts', name: 'العقود الايجارية', icon: ContractIcon },
-  { id: 'other', name: 'الوكالات الخاصة', icon: AgencyIcon },
   { id: 'supplierContracts', name: 'عقود الموردين', icon: SupplierIcon },
+  { id: 'other', name: 'الوكالات الخاصة', icon: AgencyIcon },
   { id: 'trademarks', name: 'العلامات التجارية المسجلة', icon: TrademarkIcon },
   { id: 'otherTopics', name: 'مواضيع أخرى', icon: OtherTopicsIcon },
   { id: 'procedures', name: 'الإجراءات والمتطلبات', icon: ProcedureIcon },
