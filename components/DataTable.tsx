@@ -144,7 +144,7 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
         <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={handleExport}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white text-green-700 border border-green-600 px-4 py-2 rounded-lg hover:bg-green-50 transition-colors shadow-sm text-sm font-medium"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white text-blue-700 border border-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors shadow-sm text-sm font-medium"
             >
               <ExcelSheetIcon />
               <span>تصدير Excel</span>

@@ -101,7 +101,7 @@ const ProceduresManagement: React.FC<ProceduresManagementProps> = ({ procedures,
         <div className="flex items-center gap-3 self-end md:self-center">
             <button
               onClick={handleExport}
-              className="flex items-center gap-2 bg-white text-[#334155] border border-[#334155] px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors shadow-sm text-sm font-medium"
+              className="flex items-center gap-2 bg-white text-blue-700 border border-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors shadow-sm text-sm font-medium"
             >
               <ExportIcon />
               <span>Excel</span>
