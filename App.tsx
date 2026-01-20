@@ -87,43 +87,8 @@ const App: React.FC = () => {
     return RecordStatus.Active;
   };
 
+  // Initial Data Loading Effect
   useEffect(() => {
-    const allData = [
-      ...MOCK_COMMERCIAL_LICENSES,
-      ...MOCK_OPERATIONAL_LICENSES,
-      ...MOCK_CIVIL_DEFENSE_CERTS,
-      ...MOCK_SPECIAL_AGENCIES,
-      ...MOCK_LEASE_CONTRACTS,
-      ...MOCK_GENERAL_CONTRACTS,
-      ...MOCK_OTHER_TOPICS,
-      ...MOCK_TRADEMARK_CERTS,
-    ];
-
-    const today = new Date().toISOString().split('T')[0];
-    const lastCheck = localStorage.getItem('lastEmailCheckDate');
-
-    if (lastCheck !== today) {
-        const now = new Date();
-        const ninetyDaysFromNow = new Date();
-        ninetyDaysFromNow.setDate(now.getDate() + 90);
-
-        const expiring = allData.filter(item => {
-            const expiryDateStr = 'expiryDate' in item ? item.expiryDate : item.documentedExpiryDate;
-            if (!expiryDateStr) return false;
-            
-            const expiryDate = new Date(expiryDateStr);
-            return expiryDate > now && expiryDate <= ninetyDaysFromNow;
-        });
-
-        if (expiring.length > 0) {
-            setExpiringItems(expiring);
-            if (sessionStorage.getItem('notificationDismissed') !== 'true') {
-              setShowNotification(true);
-            }
-        }
-        localStorage.setItem('lastEmailCheckDate', today);
-    }
-    
     const processLicenses = (licenses: License[]): License[] => 
         licenses.map(l => ({ ...l, status: getCalculatedStatus(l.expiryDate) }));
         
@@ -149,7 +114,77 @@ const App: React.FC = () => {
     setProcedures(MOCK_PROCEDURES);
     setOtherTopicsData(processLicenses(MOCK_OTHER_TOPICS));
     setTrademarkCerts(processLicenses(MOCK_TRADEMARK_CERTS));
-}, []);
+  }, []);
+
+  // Notification Logic Effect - Reacts to ALL data changes
+  useEffect(() => {
+    const allRecords = [
+        ...commercialLicenses,
+        ...operationalLicenses,
+        ...civilDefenseCerts,
+        ...specialAgencies,
+        ...leaseContracts,
+        ...generalContracts,
+        ...otherTopicsData,
+        ...trademarkCerts
+    ];
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const thresholdDate = new Date(today);
+    thresholdDate.setDate(today.getDate() + 120); // 120 days window
+
+    const expiring = allRecords.filter(item => {
+        const datesToCheck: string[] = [];
+        
+        // Collect all relevant dates for this item
+        if ('expiryDate' in item && item.expiryDate) {
+            datesToCheck.push(item.expiryDate);
+        }
+        if ('documentedExpiryDate' in item && item.documentedExpiryDate) {
+            datesToCheck.push(item.documentedExpiryDate);
+        }
+        if ('internalExpiryDate' in item && item.internalExpiryDate) {
+            datesToCheck.push(item.internalExpiryDate);
+        }
+
+        // Check if ANY of the dates fall in the [Today -> Today + 120 days] window
+        return datesToCheck.some(dateStr => {
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return false;
+            const dDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            
+            // Logic: It must be >= Today (Not Expired) AND <= Threshold (Soon)
+            return dDate >= today && dDate <= thresholdDate;
+        });
+    });
+
+    setExpiringItems(expiring);
+
+    // Only show notification if we found items AND user hasn't dismissed it this session
+    // Or strictly if last check date changed (optional logic from before)
+    const todayStr = new Date().toISOString().split('T')[0];
+    const lastCheck = localStorage.getItem('lastEmailCheckDate');
+    
+    if (expiring.length > 0) {
+        if (lastCheck !== todayStr || sessionStorage.getItem('notificationDismissed') !== 'true') {
+            setShowNotification(true);
+        }
+        localStorage.setItem('lastEmailCheckDate', todayStr);
+    } else {
+        setShowNotification(false);
+    }
+
+  }, [
+      commercialLicenses, 
+      operationalLicenses, 
+      civilDefenseCerts, 
+      specialAgencies, 
+      leaseContracts, 
+      generalContracts, 
+      otherTopicsData, 
+      trademarkCerts
+  ]);
 
 
   const handleAdd = (type: RecordDataType) => {
@@ -350,20 +385,20 @@ const App: React.FC = () => {
   ]);
 
   const handleSendNotificationEmail = () => {
-    const subject = "تنبيه: رخص وعقود على وشك الانتهاء";
+    const subject = "تنبيه هام: سجلات تحولت إلى حالة قاربت على الانتهاء";
     const body = `
         تحية طيبة,
 
-        هذا البريد للتنبيه بوجود الرخص/العقود التالية التي ستنتهي صلاحيتها قريباً:
+        يرجى العلم بأن السجلات التالية قد دخلت في فترة التنبيه (أقل من 4 أشهر) وتحولت حالتها من "نشط" إلى "قاربت على الانتهاء":
 
         ${expiringItems.map(item =>
           `- ${item.name} (رقم: ${item.number}) - تاريخ الانتهاء: ${'expiryDate' in item ? item.expiryDate : item.documentedExpiryDate}`
         ).join('\n')}
 
-        يرجى اتخاذ الإجراءات اللازمة للتجديد.
+        يرجى اتخاذ الإجراءات اللازمة للبدء في إجراءات التجديد.
 
         مع تحيات,
-        نظام إدارة الرخص والعقود
+        نظام إدارة الرخص والعقود - ساهر
     `;
     
     const mailtoLink = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;

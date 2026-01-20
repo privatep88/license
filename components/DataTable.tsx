@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { RecordStatus, Attachment } from '../types';
-import { PlusIcon, PencilIcon, TrashIcon, DocumentIcon, PdfIcon, WordIcon, ExcelIcon, PowerPointIcon, ExportIcon, SortIcon, SortAscIcon, SortDescIcon, ExcelSheetIcon } from './icons/ActionIcons';
+import { PlusIcon, PencilIcon, TrashIcon, DocumentIcon, PdfIcon, WordIcon, ExcelIcon, PowerPointIcon, ExportIcon, SortIcon, SortAscIcon, SortDescIcon, ExcelSheetIcon, ChevronDownIcon } from './icons/ActionIcons';
 import { getStatusClass, calculateRemainingPeriod, getRemainingPeriodClass, calculateRemainingDays, getStatusWeight } from '../utils';
 
 interface Column<T> {
@@ -25,6 +25,8 @@ interface DataTableProps<T> {
   filterComponent?: React.ReactNode;
   disableSorting?: boolean;
   hideSortIcons?: boolean;
+  isCollapsible?: boolean;
+  defaultOpen?: boolean;
 }
 
 const getReadableFileType = (name: string, type: string): string => {
@@ -40,8 +42,9 @@ const getReadableFileType = (name: string, type: string): string => {
     return 'ملف';
 };
 
-const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: string; documentedExpiryDate?: string; attachments?: Attachment[]; }>({ title, exportFileName, data, columns, onAdd, onEdit, onDelete, filterComponent, disableSorting = false, hideSortIcons = false }: DataTableProps<T>) => {
+const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: string; documentedExpiryDate?: string; attachments?: Attachment[]; }>({ title, exportFileName, data, columns, onAdd, onEdit, onDelete, filterComponent, disableSorting = false, hideSortIcons = false, isCollapsible = false, defaultOpen = true }: DataTableProps<T>) => {
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: null, direction: 'asc' });
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   const sortedData = useMemo(() => {
     if (!sortConfig.key || disableSorting) {
@@ -151,13 +154,23 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
   };
   
   return (
-    <div className="mb-12 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className={`bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden ${isOpen ? 'mb-12' : 'mb-4'} transition-all duration-300`}>
       <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
         <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
-            <h2 className="text-xl font-bold text-gray-800">{title}</h2>
+             <div 
+                onClick={() => isCollapsible && setIsOpen(!isOpen)} 
+                className={`flex items-center gap-3 ${isCollapsible ? 'cursor-pointer select-none hover:opacity-80 transition-opacity' : ''}`}
+            >
+                <div className="text-xl font-bold text-gray-800">{title}</div>
+                {isCollapsible && (
+                    <div className={`text-gray-500 transition-transform duration-200 transform ${isOpen ? 'rotate-180' : ''}`}>
+                        <ChevronDownIcon />
+                    </div>
+                )}
+            </div>
             {filterComponent}
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className={`flex items-center gap-2 w-full sm:w-auto transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
             <button
               onClick={handleExport}
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white text-blue-700 border border-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors shadow-sm text-sm font-medium"
@@ -176,7 +189,9 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
             )}
         </div>
       </div>
-      <div className="overflow-x-auto">
+      
+      {isOpen && (
+      <div className="overflow-x-auto animate-fade-in">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-[#1e293b]">
             <tr>
@@ -276,6 +291,16 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
           </tbody>
         </table>
       </div>
+      )}
+      <style>{`
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.3s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 };
