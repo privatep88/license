@@ -17,6 +17,7 @@ import OtherTopicsContent from './components/OtherTopicsContent';
 import ProceduresManagement from './components/ProceduresManagement';
 import NotificationBanner from './components/NotificationBanner';
 import TrademarkManagement from './components/TrademarkManagement';
+import { SaveIcon, CheckIcon } from './components/icons/ActionIcons';
 
 const getOverallStatus = (statuses: (RecordStatus | undefined)[]): RecordStatus => {
     const validStatuses = statuses.filter(Boolean) as RecordStatus[];
@@ -28,6 +29,41 @@ const getOverallStatus = (statuses: (RecordStatus | undefined)[]): RecordStatus 
     }
     return RecordStatus.Active;
 };
+
+// Moved helper outside to avoid dependency cycles and ensure it's available for init logic
+const getCalculatedStatus = (expiryDate: string | undefined): RecordStatus => {
+    if (!expiryDate) {
+        return RecordStatus.Active; // Default if no date
+    }
+    const now = new Date();
+    // Use start of day for consistent comparison
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); 
+
+    const parts = expiryDate.split('-');
+    if (parts.length !== 3) return RecordStatus.Active;
+    
+    // Create expiry date at start of day, local time
+    const expiry = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    
+    if (isNaN(expiry.getTime())) {
+        return RecordStatus.Active; // Invalid date
+    }
+
+    if (expiry < today) {
+        return RecordStatus.Expired;
+    }
+
+    const fourMonthsFromNow = new Date(today);
+    fourMonthsFromNow.setDate(today.getDate() + 120); // 4 months = 120 days
+
+    if (expiry <= fourMonthsFromNow) {
+        return RecordStatus.SoonToExpire;
+    }
+
+    return RecordStatus.Active;
+};
+
+const STORAGE_KEY = 'SAHER_APP_DATA_V1';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>(TABS[0]);
@@ -50,44 +86,16 @@ const App: React.FC = () => {
   const [expiringItems, setExpiringItems] = useState<Array<License | Contract>>([]);
   const [showNotification, setShowNotification] = useState(false);
 
+  // Save Confirmation State
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isDataLoaded, setIsDataLoaded] = useState(false); // Flag to ensure we don't auto-save empty states on load
 
   // Modal State
   const [modalInfo, setModalInfo] = useState<{ isOpen: boolean; record?: RecordType; type?: RecordDataType }>({ isOpen: false });
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; record?: RecordType; type?: RecordDataType }>({ isOpen: false });
 
-  const getCalculatedStatus = (expiryDate: string | undefined): RecordStatus => {
-    if (!expiryDate) {
-        return RecordStatus.Active; // Default if no date
-    }
-    const now = new Date();
-    // Use start of day for consistent comparison, avoids timezone issues with setHours(0,0,0,0)
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); 
 
-    const parts = expiryDate.split('-');
-    if (parts.length !== 3) return RecordStatus.Active;
-    
-    // Create expiry date at start of day, local time, for accurate comparison
-    const expiry = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-    
-    if (isNaN(expiry.getTime())) {
-        return RecordStatus.Active; // Invalid date
-    }
-
-    if (expiry < today) {
-        return RecordStatus.Expired;
-    }
-
-    const fourMonthsFromNow = new Date(today);
-    fourMonthsFromNow.setDate(today.getDate() + 120); // 4 months = 120 days
-
-    if (expiry <= fourMonthsFromNow) {
-        return RecordStatus.SoonToExpire;
-    }
-
-    return RecordStatus.Active;
-  };
-
-  // Initial Data Loading Effect
+  // Initial Data Loading Effect (Load from LocalStorage or Fallback to Mocks)
   useEffect(() => {
     const processLicenses = (licenses: License[]): License[] => 
         licenses.map(l => ({ ...l, status: getCalculatedStatus(l.expiryDate) }));
@@ -105,16 +113,109 @@ const App: React.FC = () => {
             };
         });
 
-    setCommercialLicenses(processLicenses(MOCK_COMMERCIAL_LICENSES));
-    setOperationalLicenses(processLicenses(MOCK_OPERATIONAL_LICENSES));
-    setCivilDefenseCerts(processLicenses(MOCK_CIVIL_DEFENSE_CERTS));
-    setSpecialAgencies(processLicenses(MOCK_SPECIAL_AGENCIES));
-    setLeaseContracts(processContracts(MOCK_LEASE_CONTRACTS));
-    setGeneralContracts(processLicenses(MOCK_GENERAL_CONTRACTS));
-    setProcedures(MOCK_PROCEDURES);
-    setOtherTopicsData(processLicenses(MOCK_OTHER_TOPICS));
-    setTrademarkCerts(processLicenses(MOCK_TRADEMARK_CERTS));
+    const loadData = () => {
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        let data;
+
+        if (savedData) {
+            try {
+                data = JSON.parse(savedData);
+            } catch (e) {
+                console.error("Failed to parse saved data", e);
+            }
+        }
+
+        if (data) {
+             // Load and Recalculate statuses based on current date
+             setCommercialLicenses(processLicenses(data.commercialLicenses || []));
+             setOperationalLicenses(processLicenses(data.operationalLicenses || []));
+             setCivilDefenseCerts(processLicenses(data.civilDefenseCerts || []));
+             setSpecialAgencies(processLicenses(data.specialAgencies || []));
+             setLeaseContracts(processContracts(data.leaseContracts || []));
+             setGeneralContracts(processLicenses(data.generalContracts || []));
+             setProcedures(data.procedures || []);
+             setOtherTopicsData(processLicenses(data.otherTopicsData || []));
+             setTrademarkCerts(processLicenses(data.trademarkCerts || []));
+        } else {
+             // Fallback to Mocks if no saved data
+             setCommercialLicenses(processLicenses(MOCK_COMMERCIAL_LICENSES));
+             setOperationalLicenses(processLicenses(MOCK_OPERATIONAL_LICENSES));
+             setCivilDefenseCerts(processLicenses(MOCK_CIVIL_DEFENSE_CERTS));
+             setSpecialAgencies(processLicenses(MOCK_SPECIAL_AGENCIES));
+             setLeaseContracts(processContracts(MOCK_LEASE_CONTRACTS));
+             setGeneralContracts(processLicenses(MOCK_GENERAL_CONTRACTS));
+             setProcedures(MOCK_PROCEDURES);
+             setOtherTopicsData(processLicenses(MOCK_OTHER_TOPICS));
+             setTrademarkCerts(processLicenses(MOCK_TRADEMARK_CERTS));
+        }
+        setIsDataLoaded(true); // Mark data as loaded to enable auto-save
+    };
+
+    loadData();
   }, []);
+
+  // AUTO SAVE EFFECT: Triggered whenever any data dependency changes
+  useEffect(() => {
+    if (!isDataLoaded) return; // Skip saving if data hasn't loaded yet
+
+    const dataToSave = {
+        commercialLicenses,
+        operationalLicenses,
+        civilDefenseCerts,
+        specialAgencies,
+        leaseContracts,
+        generalContracts,
+        procedures,
+        otherTopicsData,
+        trademarkCerts
+    };
+    
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+        // Visual feedback for auto-save
+        setSaveSuccess(true);
+        const timer = setTimeout(() => setSaveSuccess(false), 2000);
+        return () => clearTimeout(timer);
+    } catch (e) {
+        console.error("Auto-save failed", e);
+    }
+
+  }, [
+      commercialLicenses,
+      operationalLicenses,
+      civilDefenseCerts,
+      specialAgencies,
+      leaseContracts,
+      generalContracts,
+      procedures,
+      otherTopicsData,
+      trademarkCerts,
+      isDataLoaded
+  ]);
+
+  // Global Save Handler (Manual Trigger - kept for user reassurance)
+  const handleGlobalSave = () => {
+      const dataToSave = {
+          commercialLicenses,
+          operationalLicenses,
+          civilDefenseCerts,
+          specialAgencies,
+          leaseContracts,
+          generalContracts,
+          procedures,
+          otherTopicsData,
+          trademarkCerts
+      };
+      
+      try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+          setSaveSuccess(true);
+          setTimeout(() => setSaveSuccess(false), 3000);
+      } catch (e) {
+          console.error("Failed to save data", e);
+          alert("حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى.");
+      }
+  };
 
   // Notification Logic Effect - Reacts to ALL data changes
   useEffect(() => {
@@ -508,6 +609,28 @@ const App: React.FC = () => {
               onDismiss={handleDismissNotification}
           />
       )}
+
+      {/* Save Action Bar - Centered */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 mb-6 flex justify-center items-center relative z-10">
+          
+          {/* Save Button - Colored matched to Send Report Button (#eab308 bg, #091526 text) */}
+          <button
+              onClick={handleGlobalSave}
+              className="bg-[#eab308] hover:bg-[#ca9a07] text-[#091526] px-8 py-3 rounded-xl transition-all shadow-lg shadow-yellow-900/20 hover:shadow-yellow-900/40 flex items-center gap-3 font-bold text-base transform hover:-translate-y-0.5"
+              aria-label="حفظ التغييرات"
+              title="حفظ التغييرات"
+          >
+             <SaveIcon />
+             <span>حفظ التغييرات</span>
+          </button>
+
+          {/* Success Message - Absolute Positioned Below */}
+          <div className={`absolute top-full left-1/2 transform -translate-x-1/2 mt-3 transition-all duration-500 ease-in-out ${saveSuccess ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'} flex items-center gap-2 text-green-700 bg-green-50 px-4 py-2 rounded-lg border border-green-200 shadow-sm whitespace-nowrap z-20`}>
+               <CheckIcon />
+               <span className="font-bold text-sm">تم حفظ التعديلات بنجاح</span>
+          </div>
+      </div>
+
       <main className="flex-grow p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           {/* Previous Nav was here, now removed */}

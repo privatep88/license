@@ -46,17 +46,17 @@ const Header: React.FC<HeaderProps> = ({ searchQuery, onSearchChange }) => {
             <p className="text-xl font-bold text-white mt-1">نظام تسجيل الرخص التجارية والأنشطة والعقود</p>
           </div>
 
-           {/* Left Side: Search & Print */}
+           {/* Left Side: Search & Actions */}
            <div className="flex-shrink-0 flex items-center gap-3 sm:gap-4 justify-end">
              
              {/* Search Input */}
-             <div className="relative w-40 sm:w-64 md:w-80 print:hidden group">
+             <div className="relative w-32 sm:w-56 md:w-64 print:hidden group">
                 <input
                     type="text"
                     placeholder="بحث..."
                     value={searchQuery}
                     onChange={onSearchChange}
-                    className="w-full pr-9 pl-3 py-2 sm:pr-10 sm:pl-4 sm:py-3 bg-slate-900/50 border border-slate-700 text-white placeholder-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#eab308]/50 focus:border-[#eab308] transition-all text-sm sm:text-base"
+                    className="w-full pr-9 pl-3 py-2 sm:pr-10 sm:pl-4 sm:py-2.5 bg-slate-900/50 border border-slate-700 text-white placeholder-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#eab308]/50 focus:border-[#eab308] transition-all text-sm"
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500 group-focus-within:text-[#eab308] transition-colors">
                     <SearchIcon />
@@ -66,7 +66,7 @@ const Header: React.FC<HeaderProps> = ({ searchQuery, onSearchChange }) => {
             {/* Print Button */}
              <button
                 onClick={() => window.print()}
-                className="bg-[#1e293b] p-2 sm:p-3 rounded-xl hover:bg-[#334155] transition-colors shadow-sm flex items-center justify-center print:hidden border border-gray-700 text-white flex-shrink-0"
+                className="bg-[#1e293b] p-2.5 rounded-xl hover:bg-[#334155] transition-colors shadow-sm flex items-center justify-center print:hidden border border-gray-700 text-white flex-shrink-0"
                 aria-label="طباعة الصفحة"
                 title="طباعة الصفحة"
              >
