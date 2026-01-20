@@ -32,7 +32,7 @@ const NotificationBanner: React.FC<NotificationBannerProps> = ({ count, onSendEm
                         </div>
                         <div className="flex-1">
                             <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
-                                تنبيه بانتهاء الصلاحية
+                                تنبيه بقرب انتهاء الصلاحية
                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-900/50 text-red-200 border border-red-800">
                                     هام
                                 </span>
