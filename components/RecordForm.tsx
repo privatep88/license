@@ -19,7 +19,7 @@ const FormField: React.FC<{ label: string; htmlFor: string; children: React.Reac
     </div>
 );
 
-const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
+const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900";
 
 const FilePreviewIcon: React.FC<{ type: string, name: string }> = ({ type, name }) => {
     const iconContainerClass = "h-12 w-12 flex items-center justify-center bg-gray-100 rounded-md flex-shrink-0";
@@ -248,7 +248,7 @@ const RecordForm: React.FC<RecordFormProps> = ({ initialData, type, onSave, onCa
         </FormField>
         <FormField label="نوع العقد" htmlFor="contractType">
             <select name="contractType" value={data.contractType || ''} onChange={handleChange} className={commonInputClass} required>
-                <option value="" disabled>اختر النوع</option>
+                <option value="">اختر النوع</option>
                 {Object.values(ContractType).map(s => <option key={s} value={s}>{s}</option>)}
             </select>
         </FormField>
