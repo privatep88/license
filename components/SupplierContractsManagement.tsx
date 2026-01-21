@@ -50,6 +50,7 @@ const SupplierContractsManagement: React.FC<SupplierContractsManagementProps> = 
             <div className={titleStyle}>
                 <span className="text-[#eab308]"><SupplierIcon /></span>
                 <span className="font-bold text-lg tracking-wide">عقود الموردين</span>
+                <span className="bg-[#eab308] text-[#091526] text-xs font-bold px-2 py-0.5 rounded-full mr-2">{filteredGeneralContracts.length}</span>
             </div>
         }
         exportFileName="عقود الموردين"

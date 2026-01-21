@@ -47,8 +47,22 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   const sortedData = useMemo(() => {
-    if (!sortConfig.key || disableSorting) {
+    if (disableSorting) {
       return data;
+    }
+
+    // Default Sorting Logic
+    let activeKey = sortConfig.key;
+    let activeDirection = sortConfig.direction;
+
+    // If no user-selected sort key, default to 'status' if the data has it
+    if (!activeKey) {
+        if (data.length > 0 && (data[0] as any).status) {
+            activeKey = 'status';
+            activeDirection = 'asc'; // Ascending weight: Expired(1) -> Soon(2) -> Active(3)
+        } else {
+            return data;
+        }
     }
 
     const sortableItems = [...data];
@@ -56,14 +70,14 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
       let aValue: any;
       let bValue: any;
 
-      const key = sortConfig.key as keyof T | 'remaining';
+      const key = activeKey as keyof T | 'remaining';
 
       if (key === 'remaining') {
         aValue = calculateRemainingDays(a.expiryDate || a.documentedExpiryDate);
         bValue = calculateRemainingDays(b.expiryDate || b.documentedExpiryDate);
       } else {
-        aValue = a[key];
-        bValue = b[key];
+        aValue = a[key as keyof T];
+        bValue = b[key as keyof T];
       }
       
       if (aValue === null || typeof aValue === 'undefined') return 1;
@@ -93,7 +107,7 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
           comparison = String(aValue).localeCompare(String(bValue), 'ar');
       }
 
-      return sortConfig.direction === 'desc' ? comparison * -1 : comparison;
+      return activeDirection === 'desc' ? comparison * -1 : comparison;
     });
 
     return sortableItems;

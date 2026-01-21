@@ -50,6 +50,7 @@ const OtherTopicsContent: React.FC<OtherTopicsContentProps> = ({
             <div className={titleStyle}>
                 <span className="text-[#eab308]"><OtherTopicsIcon /></span>
                 <span className="font-bold text-lg tracking-wide">المواضيع الأخرى</span>
+                <span className="bg-[#eab308] text-[#091526] text-xs font-bold px-2 py-0.5 rounded-full mr-2">{filteredTopics.length}</span>
             </div>
         }
         exportFileName="المواضيع الأخرى"

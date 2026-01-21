@@ -51,6 +51,7 @@ const TrademarkManagement: React.FC<TrademarkManagementProps> = ({
             <div className={titleStyle}>
                 <span className="text-[#eab308]"><TrademarkIcon /></span>
                 <span className="font-bold text-lg tracking-wide">العلامات التجارية المسجلة</span>
+                <span className="bg-[#eab308] text-[#091526] text-xs font-bold px-2 py-0.5 rounded-full mr-2">{filteredCertificates.length}</span>
             </div>
         }
         exportFileName="العلامات التجارية المسجلة"

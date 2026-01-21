@@ -90,6 +90,7 @@ const LicenseManagement: React.FC<LicenseManagementProps> = ({
             <div className={titleStyle}>
                 <span className="text-[#eab308]"><LicenseIcon /></span>
                 <span className="font-bold text-lg tracking-wide">الرخص التجارية</span>
+                <span className="bg-[#eab308] text-[#091526] text-xs font-bold px-2 py-0.5 rounded-full mr-2">{filteredCommercial.length}</span>
             </div>
         }
         exportFileName="الرخص التجارية"
@@ -110,6 +111,7 @@ const LicenseManagement: React.FC<LicenseManagementProps> = ({
             <div className={titleStyle}>
                 <span className="text-[#eab308]"><ClipboardListIcon /></span>
                 <span className="font-bold text-lg tracking-wide">الرخص التشغيلية</span>
+                <span className="bg-[#eab308] text-[#091526] text-xs font-bold px-2 py-0.5 rounded-full mr-2">{filteredOperational.length}</span>
             </div>
         }
         exportFileName="الرخص التشغيلية"
@@ -130,6 +132,7 @@ const LicenseManagement: React.FC<LicenseManagementProps> = ({
             <div className={titleStyle}>
                 <span className="text-[#eab308]"><ShieldIcon /></span>
                 <span className="font-bold text-lg tracking-wide">شهادات الدفاع المدني</span>
+                <span className="bg-[#eab308] text-[#091526] text-xs font-bold px-2 py-0.5 rounded-full mr-2">{filteredCivilDefense.length}</span>
             </div>
         }
         exportFileName="شهادات الدفاع المدني"

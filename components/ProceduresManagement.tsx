@@ -93,6 +93,7 @@ const ProceduresManagement: React.FC<ProceduresManagementProps> = ({ procedures,
             <div className={titleStyle}>
                 <span className="text-[#eab308]"><ProcedureIcon /></span>
                 <span className="font-bold text-lg tracking-wide">الإجراءات والمتطلبات</span>
+                <span className="bg-[#eab308] text-[#091526] text-xs font-bold px-2 py-0.5 rounded-full mr-2">{procedures.length}</span>
             </div>
             <p className="text-gray-500 text-sm mt-1 pr-2">
                  لتجديد الرخص / الأنشطة / العقود / الشهادات / الوكالات - والمواضيع الأخرى

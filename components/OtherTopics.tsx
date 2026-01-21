@@ -43,6 +43,7 @@ const SpecialAgenciesManagement: React.FC<SpecialAgenciesManagementProps> = ({ a
         <div className={titleStyle}>
             <span className="text-[#eab308]"><AgencyIcon /></span>
             <span className="font-bold text-lg tracking-wide">الوكالات الخاصة</span>
+            <span className="bg-[#eab308] text-[#091526] text-xs font-bold px-2 py-0.5 rounded-full mr-2">{filteredAgencies.length}</span>
         </div>
       }
       exportFileName="الوكالات الخاصة"

@@ -155,6 +155,7 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
         <div className={titleStyle}>
             <span className="text-[#eab308]"><ContractIcon /></span>
             <span className="font-bold text-lg tracking-wide">العقود الايجارية</span>
+            <span className="bg-[#eab308] text-[#091526] text-xs font-bold px-2 py-0.5 rounded-full mr-2">{filteredContracts.length}</span>
         </div>
       }
       exportFileName="العقود الايجارية"
