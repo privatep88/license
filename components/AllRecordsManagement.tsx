@@ -167,27 +167,29 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
         label, 
         count, 
         colorClass, 
+        borderColorClass,
         icon 
     }: { 
         label: string, 
         count: number, 
         colorClass: string, 
+        borderColorClass: string,
         icon: React.ReactNode 
     }) => (
         <div
             className={`
-                relative overflow-hidden flex items-center justify-between p-4 rounded-xl bg-white shadow-sm border border-gray-200
+                relative overflow-hidden flex items-center gap-4 p-4 rounded-xl bg-white shadow-sm border-2 ${borderColorClass}
             `}
         >
-            <div className="flex flex-col items-start z-10">
-                <span className="text-sm font-bold mb-1 text-gray-500">{label}</span>
-                <span className="text-2xl font-extrabold text-gray-900">{count}</span>
-            </div>
              <div className={`
                 w-12 h-12 rounded-full flex items-center justify-center text-white shadow-sm flex-shrink-0
                 ${colorClass}
             `}>
                 {icon}
+            </div>
+            <div className="flex flex-col items-start z-10">
+                <span className="text-sm font-bold mb-1 text-gray-500">{label}</span>
+                <span className="text-2xl font-extrabold text-gray-900">{count}</span>
             </div>
              {/* Simple Background decoration */}
              <div className="absolute right-0 top-0 w-16 h-full opacity-5 bg-gray-500 transform skew-x-12" />
@@ -202,24 +204,28 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
                     label="جميع السجلات" 
                     count={stats.all} 
                     colorClass="bg-blue-500"
+                    borderColorClass="border-blue-500"
                     icon={<AllRecordsIcon />}
                 />
                 <FilterCard 
                     label="السجلات النشطة" 
                     count={stats.active} 
                     colorClass="bg-green-500"
+                    borderColorClass="border-green-500"
                     icon={<CheckIcon />}
                 />
                  <FilterCard 
                     label="قاربت على الانتهاء" 
                     count={stats.soon} 
                     colorClass="bg-yellow-500"
+                    borderColorClass="border-yellow-500"
                     icon={<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                 />
                 <FilterCard 
                     label="السجلات المنتهية" 
                     count={stats.expired} 
                     colorClass="bg-red-500"
+                    borderColorClass="border-red-500"
                     icon={<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>}
                 />
             </div>
