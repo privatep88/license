@@ -176,21 +176,21 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
     }) => (
         <div
             className={`
-                relative overflow-hidden flex items-center gap-4 p-4 rounded-xl border bg-white border-gray-100 shadow-sm
+                relative overflow-hidden flex items-center justify-between p-4 rounded-xl bg-white shadow-sm border border-gray-200
             `}
         >
-            <div className={`
+            <div className="flex flex-col items-start z-10">
+                <span className="text-sm font-bold mb-1 text-gray-500">{label}</span>
+                <span className="text-2xl font-extrabold text-gray-900">{count}</span>
+            </div>
+             <div className={`
                 w-12 h-12 rounded-full flex items-center justify-center text-white shadow-sm flex-shrink-0
                 ${colorClass}
             `}>
                 {icon}
             </div>
-            <div className="flex flex-col items-start z-10">
-                <span className="text-sm font-bold mb-1 text-gray-500">{label}</span>
-                <span className="text-2xl font-extrabold text-gray-900">{count}</span>
-            </div>
              {/* Simple Background decoration */}
-             <div className="absolute left-0 top-0 w-16 h-full opacity-5 bg-gray-500 transform -skew-x-12" />
+             <div className="absolute right-0 top-0 w-16 h-full opacity-5 bg-gray-500 transform skew-x-12" />
         </div>
     );
 
