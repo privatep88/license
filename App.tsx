@@ -153,15 +153,9 @@ const App: React.FC = () => {
     loadData();
   }, []);
 
-  // AUTO SAVE EFFECT: Triggered whenever any data dependency changes, but skips the initial load.
+  // AUTO SAVE EFFECT: Triggered whenever any data dependency changes.
+  // The first run after data load saves the data but does not show a notification.
   useEffect(() => {
-    if (isInitialMount.current) {
-        // On the first render cycle (after data is loaded), this ref is true.
-        // We set it to false and skip saving. All subsequent runs will be from user actions.
-        isInitialMount.current = false;
-        return;
-    }
-
     const dataToSave = {
         commercialLicenses,
         operationalLicenses,
@@ -173,13 +167,27 @@ const App: React.FC = () => {
         otherTopicsData,
         trademarkCerts
     };
-    
+
+    // This prevents saving on the very first render when arrays are empty,
+    // which would otherwise wipe localStorage if it exists.
+    const isAnyDataPresent = Object.values(dataToSave).some(arr => Array.isArray(arr) && arr.length > 0);
+    if (!isAnyDataPresent && isInitialMount.current) {
+        return;
+    }
+
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
-        // Visual feedback for auto-save
-        setSaveSuccess(true);
-        const timer = setTimeout(() => setSaveSuccess(false), 2000);
-        return () => clearTimeout(timer);
+
+        if (isInitialMount.current) {
+            // This is the first save AFTER data has been loaded.
+            // Flip the flag and do NOT show a notification.
+            isInitialMount.current = false;
+        } else {
+            // This is a subsequent, user-initiated save.
+            setSaveSuccess(true);
+            const timer = setTimeout(() => setSaveSuccess(false), 2000);
+            return () => clearTimeout(timer);
+        }
     } catch (e) {
         console.error("Auto-save failed", e);
     }

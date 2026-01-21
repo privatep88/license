@@ -16,9 +16,8 @@ interface LicenseManagementProps {
     onDelete: (item: License, type: RecordDataType) => void;
 }
 
-// FIX: Define a reusable column type to enforce type safety on column definitions.
 type LicenseColumn = {
-  key: keyof License | 'actions' | 'remaining' | 'attachments';
+  key: keyof License | 'actions' | 'remaining' | 'attachments' | 'serial';
   header: string;
   render?: (item: License) => React.ReactNode;
   exportValue?: (item: License) => string | number | null | undefined;
@@ -52,7 +51,6 @@ const LicenseManagement: React.FC<LicenseManagementProps> = ({
   const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center text-sm";
   const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm text-sm";
 
-  // FIX: Use the defined LicenseColumn type for strong typing and better readability.
   const baseLicenseColumns: LicenseColumn[] = [
     { key: 'number', header: 'رقم الرخصة', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
     { key: 'expiryDate', header: 'تاريخ الانتهاء', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
@@ -64,19 +62,16 @@ const LicenseManagement: React.FC<LicenseManagementProps> = ({
     { key: 'actions', header: 'إجراءات', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
   ];
 
-  // FIX: Use the defined LicenseColumn type to fix type inference issue.
   const commercialLicenseColumns: LicenseColumn[] = [
     { key: 'name', header: 'اسم الرخصة التجارية', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
     ...baseLicenseColumns
   ];
   
-  // FIX: Use the defined LicenseColumn type to fix type inference issue.
   const operationalLicenseColumns: LicenseColumn[] = [
     { key: 'name', header: 'الموضوع', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
     ...baseLicenseColumns.map(c => c.key === 'number' ? {...c, header: 'الرقم'} : c)
   ];
   
-  // FIX: Use the defined LicenseColumn type to fix type inference issue.
   const civilDefenseCertColumns: LicenseColumn[] = [
     { key: 'name', header: 'الموضوع', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
     ...baseLicenseColumns.map(c => {

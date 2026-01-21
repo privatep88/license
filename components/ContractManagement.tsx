@@ -24,7 +24,7 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
   const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm text-sm";
 
   const columns: { 
-    key: keyof Contract | 'actions' | 'remaining' | 'attachments'; 
+    key: keyof Contract | 'actions' | 'remaining' | 'attachments' | 'serial'; 
     header: string;
     render?: (item: Contract) => React.ReactNode;
     exportValue?: (item: Contract) => string | number | null | undefined;

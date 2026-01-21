@@ -23,7 +23,7 @@ const SpecialAgenciesManagement: React.FC<SpecialAgenciesManagementProps> = ({ a
   const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center text-sm";
   const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm text-sm";
 
-  const columns: { key: keyof License | 'actions' | 'remaining' | 'attachments'; header: string; render?: (item: License) => React.ReactNode; exportValue?: (item: License) => string | number | null | undefined; headerClassName?: string; cellClassName?: string; }[] = [
+  const columns: { key: keyof License | 'actions' | 'remaining' | 'attachments' | 'serial'; header: string; render?: (item: License) => React.ReactNode; exportValue?: (item: License) => string | number | null | undefined; headerClassName?: string; cellClassName?: string; }[] = [
     { key: 'name', header: 'الوكلات الخاصة', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
     { key: 'number', header: 'رقم المصادقة', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
     { key: 'expiryDate', header: 'تاريخ الانتهاء', headerClassName: baseHeaderClass, cellClassName: baseCellClass },

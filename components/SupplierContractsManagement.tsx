@@ -28,7 +28,7 @@ const SupplierContractsManagement: React.FC<SupplierContractsManagementProps> = 
   const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center text-sm";
   const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm text-sm";
 
-  const generalContractColumns: { key: keyof License | 'actions' | 'remaining' | 'attachments'; header: string; render?: (item: License) => React.ReactNode; exportValue?: (item: License) => string | number | null | undefined; headerClassName?: string; cellClassName?: string; }[] = [
+  const generalContractColumns: { key: keyof License | 'actions' | 'remaining' | 'attachments' | 'serial'; header: string; render?: (item: License) => React.ReactNode; exportValue?: (item: License) => string | number | null | undefined; headerClassName?: string; cellClassName?: string; }[] = [
     { key: 'name', header: 'اسم العقد العام', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
     { key: 'number', header: 'رقم العقد', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
     { key: 'expiryDate', header: 'تاريخ الانتهاء', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
