@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import SecondaryHeader from './components/SecondaryHeader';
 import LicenseManagement from './components/LicenseManagement';
@@ -88,7 +88,7 @@ const App: React.FC = () => {
 
   // Save Confirmation State
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [isDataLoaded, setIsDataLoaded] = useState(false); // Flag to ensure we don't auto-save empty states on load
+  const isInitialMount = useRef(true); // Ref to track initial load
 
   // Modal State
   const [modalInfo, setModalInfo] = useState<{ isOpen: boolean; record?: RecordType; type?: RecordDataType }>({ isOpen: false });
@@ -148,15 +148,19 @@ const App: React.FC = () => {
              setOtherTopicsData(processLicenses(MOCK_OTHER_TOPICS));
              setTrademarkCerts(processLicenses(MOCK_TRADEMARK_CERTS));
         }
-        setIsDataLoaded(true); // Mark data as loaded to enable auto-save
     };
 
     loadData();
   }, []);
 
-  // AUTO SAVE EFFECT: Triggered whenever any data dependency changes
+  // AUTO SAVE EFFECT: Triggered whenever any data dependency changes, but skips the initial load.
   useEffect(() => {
-    if (!isDataLoaded) return; // Skip saving if data hasn't loaded yet
+    if (isInitialMount.current) {
+        // On the first render cycle (after data is loaded), this ref is true.
+        // We set it to false and skip saving. All subsequent runs will be from user actions.
+        isInitialMount.current = false;
+        return;
+    }
 
     const dataToSave = {
         commercialLicenses,
@@ -179,7 +183,6 @@ const App: React.FC = () => {
     } catch (e) {
         console.error("Auto-save failed", e);
     }
-
   }, [
       commercialLicenses,
       operationalLicenses,
@@ -190,7 +193,6 @@ const App: React.FC = () => {
       procedures,
       otherTopicsData,
       trademarkCerts,
-      isDataLoaded
   ]);
 
   // Global Save Handler (Manual Trigger - kept for user reassurance)
