@@ -630,7 +630,7 @@ const App: React.FC = () => {
 
       {showNotification && expiringItems.length > 0 && (
           <NotificationBanner 
-              count={expiringItems.length}
+              items={expiringItems}
               onSendEmail={handleSendNotificationEmail}
               onDismiss={handleDismissNotification}
           />
