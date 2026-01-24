@@ -110,6 +110,11 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
         return unifiedData.filter(item => item.status === RecordStatus.Expired);
     }, [unifiedData]);
 
+    // Filter "Active" records
+    const activeData = useMemo(() => {
+        return unifiedData.filter(item => item.status === RecordStatus.Active);
+    }, [unifiedData]);
+
     const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-center align-middle font-medium text-white text-sm [&>button]:justify-center";
     const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center text-sm";
     const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm text-sm";
@@ -161,6 +166,7 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
     const titleStyle = "flex items-center gap-3 px-5 py-2.5 bg-[#091526] text-white rounded-xl border-r-4 border-[#eab308] shadow-md hover:shadow-lg transition-all duration-300";
     const alertTitleStyle = "flex items-center gap-3 px-5 py-2.5 bg-yellow-50 text-yellow-800 rounded-xl border-r-4 border-yellow-500 shadow-md";
     const expiredTitleStyle = "flex items-center gap-3 px-5 py-2.5 bg-red-50 text-red-800 rounded-xl border-r-4 border-red-500 shadow-md";
+    const activeTitleStyle = "flex items-center gap-3 px-5 py-2.5 bg-green-50 text-green-800 rounded-xl border-r-4 border-green-500 shadow-md";
 
     // Reusable Filter Card Component - DISPLAY ONLY (No filtering logic)
     const FilterCard = ({ 
@@ -274,6 +280,33 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
                         }
                         exportFileName="سجلات_قاربت_على_الانتهاء"
                         data={soonToExpireData}
+                        columns={columns}
+                        onEdit={(item) => onEdit(item.originalRecord, item.originalType)}
+                        onDelete={(item) => onDelete(item.originalRecord, item.originalType)}
+                        disableSorting={true}
+                        isCollapsible={true}
+                        defaultOpen={true}
+                    />
+                </div>
+            )}
+
+             {/* Active Records Table (New Section) */}
+             {activeData.length > 0 && (
+                <div className="mb-10 border-2 border-green-300 rounded-xl overflow-hidden shadow-sm relative">
+                    <div className="absolute top-0 right-0 w-2 h-full bg-green-400"></div>
+                     <DataTable
+                        title={
+                            <div className={activeTitleStyle}>
+                                <span className="text-green-600">
+                                    <CheckIcon />
+                                </span>
+                                <span className="font-bold text-lg tracking-wide text-green-900">
+                                    سجلات نشطة (حالة ممتازة)
+                                </span>
+                            </div>
+                        }
+                        exportFileName="سجلات_نشطة"
+                        data={activeData}
                         columns={columns}
                         onEdit={(item) => onEdit(item.originalRecord, item.originalType)}
                         onDelete={(item) => onDelete(item.originalRecord, item.originalType)}
