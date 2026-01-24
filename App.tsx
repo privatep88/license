@@ -17,6 +17,7 @@ import OtherTopicsContent from './components/OtherTopicsContent';
 import ProceduresManagement from './components/ProceduresManagement';
 import NotificationBanner from './components/NotificationBanner';
 import TrademarkManagement from './components/TrademarkManagement';
+import Dashboard from './components/Dashboard';
 import { SaveIcon, CheckIcon } from './components/icons/ActionIcons';
 
 const getOverallStatus = (statuses: (RecordStatus | undefined)[]): RecordStatus => {
@@ -466,7 +467,17 @@ const App: React.FC = () => {
 
   // Calculate Tab Counts
   const tabCounts = useMemo(() => {
+    const allRecordsCount = filteredCommercialLicenses.length + 
+                    filteredOperationalLicenses.length + 
+                    filteredCivilDefenseCerts.length + 
+                    filteredLeaseContracts.length + 
+                    filteredGeneralContracts.length + 
+                    filteredSpecialAgencies.length + 
+                    filteredTrademarkCerts.length + 
+                    filteredOtherTopicsData.length;
+
     return {
+        dashboard: allRecordsCount + filteredProcedures.length,
         licenses: filteredCommercialLicenses.length + filteredOperationalLicenses.length + filteredCivilDefenseCerts.length,
         contracts: filteredLeaseContracts.length,
         supplierContracts: filteredGeneralContracts.length,
@@ -474,14 +485,7 @@ const App: React.FC = () => {
         trademarks: filteredTrademarkCerts.length,
         otherTopics: filteredOtherTopicsData.length,
         procedures: filteredProcedures.length,
-        allRecords: filteredCommercialLicenses.length + 
-                    filteredOperationalLicenses.length + 
-                    filteredCivilDefenseCerts.length + 
-                    filteredLeaseContracts.length + 
-                    filteredGeneralContracts.length + 
-                    filteredSpecialAgencies.length + 
-                    filteredTrademarkCerts.length + 
-                    filteredOtherTopicsData.length
+        allRecords: allRecordsCount 
     };
   }, [
     filteredCommercialLicenses, 
@@ -523,6 +527,18 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     switch (activeTab.id) {
+      case 'dashboard':
+        return <Dashboard 
+                    commercialLicenses={filteredCommercialLicenses}
+                    operationalLicenses={filteredOperationalLicenses}
+                    civilDefenseCerts={filteredCivilDefenseCerts}
+                    leaseContracts={filteredLeaseContracts}
+                    generalContracts={filteredGeneralContracts}
+                    specialAgencies={filteredSpecialAgencies}
+                    trademarkCerts={filteredTrademarkCerts}
+                    otherTopics={filteredOtherTopicsData}
+                    procedures={filteredProcedures}
+                />;
       case 'licenses':
         return <LicenseManagement 
                     commercialLicenses={filteredCommercialLicenses}

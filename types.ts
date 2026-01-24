@@ -73,7 +73,7 @@ export interface Procedure {
 
 
 export interface Tab {
-    id: 'licenses' | 'contracts' | 'other' | 'supplierContracts' | 'otherTopics' | 'procedures' | 'trademarks' | 'allRecords';
+    id: 'dashboard' | 'licenses' | 'contracts' | 'other' | 'supplierContracts' | 'otherTopics' | 'procedures' | 'trademarks' | 'allRecords';
     name: string;
     icon: React.FC;
 }
