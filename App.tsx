@@ -261,43 +261,33 @@ const App: React.FC = () => {
               const json = JSON.parse(e.target?.result as string);
               
               // Basic validation check to ensure it's a valid backup file
-              if (!json.commercialLicenses && !json.leaseContracts) {
+              // Checks for at least one known key to validate schema
+              const knownKeys = ['commercialLicenses', 'leaseContracts', 'operationalLicenses', 'procedures'];
+              const isValid = knownKeys.some(key => Array.isArray(json[key]));
+
+              if (!isValid) {
                   throw new Error("Invalid backup file format");
               }
 
               if (window.confirm("هل أنت متأكد من استعادة هذه النسخة الاحتياطية؟ سيتم استبدال البيانات الحالية.")) {
-                  // Process functions from useEffect
-                  const processLicenses = (licenses: License[]): License[] => 
-                        licenses.map(l => ({ ...l, status: getCalculatedStatus(l.expiryDate) }));
-                        
-                  const processContracts = (contracts: Contract[]): Contract[] => 
-                        contracts.map(c => {
-                            const documentedStatus = c.documentedExpiryDate ? getCalculatedStatus(c.documentedExpiryDate) : undefined;
-                            const internalStatus = c.internalExpiryDate ? getCalculatedStatus(c.internalExpiryDate) : undefined;
-                            const status = getOverallStatus([documentedStatus, internalStatus]);
-                            return {
-                                ...c,
-                                documentedStatus,
-                                internalStatus,
-                                status
-                            };
-                        });
+                  // Construct a clean object to save, ignoring any extra metadata from the backup file
+                  const dataToRestore = {
+                      commercialLicenses: json.commercialLicenses || [],
+                      operationalLicenses: json.operationalLicenses || [],
+                      civilDefenseCerts: json.civilDefenseCerts || [],
+                      specialAgencies: json.specialAgencies || [],
+                      leaseContracts: json.leaseContracts || [],
+                      generalContracts: json.generalContracts || [],
+                      procedures: json.procedures || [],
+                      otherTopicsData: json.otherTopicsData || [],
+                      trademarkCerts: json.trademarkCerts || []
+                  };
 
-                  setCommercialLicenses(processLicenses(json.commercialLicenses || []));
-                  setOperationalLicenses(processLicenses(json.operationalLicenses || []));
-                  setCivilDefenseCerts(processLicenses(json.civilDefenseCerts || []));
-                  setSpecialAgencies(processLicenses(json.specialAgencies || []));
-                  setLeaseContracts(processContracts(json.leaseContracts || []));
-                  setGeneralContracts(processLicenses(json.generalContracts || []));
-                  setProcedures(json.procedures || []);
-                  setOtherTopicsData(processLicenses(json.otherTopicsData || []));
-                  setTrademarkCerts(processLicenses(json.trademarkCerts || []));
-
-                  // Force save to local storage immediately
-                  localStorage.setItem(STORAGE_KEY, JSON.stringify(json));
+                  // Force save to local storage immediately before reload
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToRestore));
                   
                   alert("تم استعادة النسخة الاحتياطية بنجاح.");
-                  // Reload page to ensure clean state
+                  // Reload page to ensure clean state and re-initialization
                   window.location.reload();
               }
           } catch (err) {
