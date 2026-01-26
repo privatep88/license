@@ -228,6 +228,86 @@ const App: React.FC = () => {
       }
   };
 
+  const handleBackup = () => {
+      const dataToSave = {
+          commercialLicenses,
+          operationalLicenses,
+          civilDefenseCerts,
+          specialAgencies,
+          leaseContracts,
+          generalContracts,
+          procedures,
+          otherTopicsData,
+          trademarkCerts,
+          backupDate: new Date().toISOString()
+      };
+      
+      const blob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const dateStr = new Date().toISOString().split('T')[0];
+      link.download = `SAHER_Backup_${dateStr}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+  };
+
+  const handleRestore = (file: File) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          try {
+              const json = JSON.parse(e.target?.result as string);
+              
+              // Basic validation check to ensure it's a valid backup file
+              if (!json.commercialLicenses && !json.leaseContracts) {
+                  throw new Error("Invalid backup file format");
+              }
+
+              if (window.confirm("هل أنت متأكد من استعادة هذه النسخة الاحتياطية؟ سيتم استبدال البيانات الحالية.")) {
+                  // Process functions from useEffect
+                  const processLicenses = (licenses: License[]): License[] => 
+                        licenses.map(l => ({ ...l, status: getCalculatedStatus(l.expiryDate) }));
+                        
+                  const processContracts = (contracts: Contract[]): Contract[] => 
+                        contracts.map(c => {
+                            const documentedStatus = c.documentedExpiryDate ? getCalculatedStatus(c.documentedExpiryDate) : undefined;
+                            const internalStatus = c.internalExpiryDate ? getCalculatedStatus(c.internalExpiryDate) : undefined;
+                            const status = getOverallStatus([documentedStatus, internalStatus]);
+                            return {
+                                ...c,
+                                documentedStatus,
+                                internalStatus,
+                                status
+                            };
+                        });
+
+                  setCommercialLicenses(processLicenses(json.commercialLicenses || []));
+                  setOperationalLicenses(processLicenses(json.operationalLicenses || []));
+                  setCivilDefenseCerts(processLicenses(json.civilDefenseCerts || []));
+                  setSpecialAgencies(processLicenses(json.specialAgencies || []));
+                  setLeaseContracts(processContracts(json.leaseContracts || []));
+                  setGeneralContracts(processLicenses(json.generalContracts || []));
+                  setProcedures(json.procedures || []);
+                  setOtherTopicsData(processLicenses(json.otherTopicsData || []));
+                  setTrademarkCerts(processLicenses(json.trademarkCerts || []));
+
+                  // Force save to local storage immediately
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify(json));
+                  
+                  alert("تم استعادة النسخة الاحتياطية بنجاح.");
+                  // Reload page to ensure clean state
+                  window.location.reload();
+              }
+          } catch (err) {
+              console.error(err);
+              alert("فشل في استعادة النسخة الاحتياطية. تأكد من صحة الملف.");
+          }
+      };
+      reader.readAsText(file);
+  };
+
   // Notification Logic Effect - Reacts to ALL data changes
   useEffect(() => {
     const allRecords = [
@@ -620,6 +700,8 @@ const App: React.FC = () => {
       <Header 
         searchQuery={searchQuery}
         onSearchChange={(e) => setSearchQuery(e.target.value)}
+        onBackup={handleBackup}
+        onRestore={handleRestore}
       />
       
       <SecondaryHeader 

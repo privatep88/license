@@ -44,7 +44,7 @@ const NotificationBanner: React.FC<NotificationBannerProps> = ({ items, onSendEm
                              </span>
                         </div>
                         <p className="text-gray-400 text-sm">
-                            يرجى الانتباه، هناك <span className="text-white font-bold mx-1 text-base">{count}</span> سجلات تحولت حالتها مؤخراً إلى <span className="text-[#eab308] border-b border-[#eab308] border-dashed pb-0.5 font-medium">قاربت على الانتهاء</span>.
+                            يرجى الانتباه، هناك <span className="text-[#eab308] font-bold mx-1 text-base">{count}</span> سجلات تحولت حالتها مؤخراً إلى <span className="text-[#eab308] border-b border-[#eab308] border-dashed pb-0.5 font-medium">قاربت على الانتهاء</span>.
                         </p>
                     </div>
                 </div>
@@ -85,7 +85,7 @@ const NotificationBanner: React.FC<NotificationBannerProps> = ({ items, onSendEm
                                      <span className="text-[#eab308] dir-ltr inline-block font-mono">
                                         [{getItemDate(item)}]
                                      </span>
-                                     <span className="w-1.5 h-1.5 rounded-full bg-gray-600"></span>
+                                     <span className="w-1.5 h-1.5 rounded-full bg-[#eab308] animate-pulse"></span>
                                  </div>
                             ))}
                          </div>

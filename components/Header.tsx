@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { SearchIcon, PrintIcon } from './icons/ActionIcons';
+import React, { useRef } from 'react';
+import { SearchIcon, PrintIcon, BackupIcon, RestoreIcon } from './icons/ActionIcons';
 
 const SaherLogo: React.FC = () => (
   <div className="flex items-center gap-3 sm:gap-4 scale-90 sm:scale-100 origin-right transition-transform">
@@ -25,9 +25,28 @@ const SaherLogo: React.FC = () => (
 interface HeaderProps {
     searchQuery: string;
     onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onBackup: () => void;
+    onRestore: (file: File) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ searchQuery, onSearchChange }) => {
+const Header: React.FC<HeaderProps> = ({ searchQuery, onSearchChange, onBackup, onRestore }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleRestoreClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onRestore(file);
+    }
+    // Reset input to allow selecting the same file again if needed
+    if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <header className="bg-[#091526] border-b-4 border-[#eab308] shadow-sm relative z-30 print:hidden">
       <div className="w-full px-4 sm:px-6 lg:px-8">
@@ -63,15 +82,44 @@ const Header: React.FC<HeaderProps> = ({ searchQuery, onSearchChange }) => {
                 </div>
             </div>
 
-            {/* Print Button */}
-             <button
-                onClick={() => window.print()}
-                className="bg-[#1e293b] p-2.5 rounded-xl hover:bg-[#334155] transition-colors shadow-sm flex items-center justify-center print:hidden border border-gray-700 text-white flex-shrink-0"
-                aria-label="طباعة الصفحة"
-                title="طباعة الصفحة"
-             >
-                <PrintIcon />
-             </button>
+            <div className="flex items-center gap-2">
+                 {/* Backup Button */}
+                <button
+                    onClick={onBackup}
+                    className="bg-[#1e293b] p-2.5 rounded-xl hover:bg-[#334155] transition-colors shadow-sm flex items-center justify-center print:hidden border border-gray-700 text-white flex-shrink-0 group relative"
+                    aria-label="نسخ احتياطي"
+                    title="نسخ احتياطي للبيانات"
+                >
+                    <BackupIcon />
+                </button>
+
+                {/* Restore Button */}
+                <button
+                    onClick={handleRestoreClick}
+                    className="bg-[#1e293b] p-2.5 rounded-xl hover:bg-[#334155] transition-colors shadow-sm flex items-center justify-center print:hidden border border-gray-700 text-white flex-shrink-0 group relative"
+                    aria-label="استعادة نسخة"
+                    title="استعادة البيانات من نسخة احتياطية"
+                >
+                    <RestoreIcon />
+                </button>
+                <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                    className="hidden" 
+                    accept=".json"
+                />
+
+                {/* Print Button */}
+                <button
+                    onClick={() => window.print()}
+                    className="bg-[#1e293b] p-2.5 rounded-xl hover:bg-[#334155] transition-colors shadow-sm flex items-center justify-center print:hidden border border-gray-700 text-white flex-shrink-0"
+                    aria-label="طباعة الصفحة"
+                    title="طباعة الصفحة"
+                >
+                    <PrintIcon />
+                </button>
+            </div>
 
            </div>
         </div>
