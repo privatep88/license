@@ -19,9 +19,26 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
 
   const filteredContracts = contracts.filter(c => statusFilter === 'all' || c.status === statusFilter);
 
-  const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-center align-middle font-medium text-white text-sm [&>button]:justify-center";
-  const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center text-sm";
-  const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm text-sm";
+  // Custom Styles for this Table Only
+  const baseHeaderClass = "whitespace-nowrap px-1 py-3 text-center align-middle font-medium text-white text-sm [&>button]:justify-center";
+  
+  // Compact Cell: Forces column to shrink to content width (w-px)
+  const compactCellClass = "whitespace-nowrap px-1 py-3 text-gray-700 align-middle text-center text-sm w-px";
+  
+  // Main Fluid Cell (Name): Allows text wrapping, constrained max width to prevent overflow
+  // Removed font-semibold to match Supplier Contracts
+  const mainFluidCellClass = "px-2 py-3 text-gray-700 align-middle text-center text-sm whitespace-normal min-w-[180px] max-w-[300px]";
+  
+  // Note Cell: Allows wrapping, smaller min-width
+  const noteCellClass = "px-2 py-3 text-gray-700 align-middle text-center text-sm whitespace-normal min-w-[150px] max-w-[250px]";
+
+  // Helper for internal rows (Label + Value close together) - Fonts normalized to match other tables (text-sm for value)
+  const renderRow = (label: string, value: React.ReactNode, colorClass: string = "text-gray-900") => (
+     <div className="flex items-center gap-1.5 justify-start">
+        <span className="text-xs text-gray-500 font-medium">{label}:</span>
+        <span className={`text-sm ${colorClass}`}>{value}</span>
+     </div>
+  );
 
   const columns: { 
     key: keyof Contract | 'actions' | 'remaining' | 'attachments' | 'serial'; 
@@ -31,53 +48,43 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
     headerClassName?: string;
     cellClassName?: string;
   }[] = [
-    { key: 'name', header: 'اسم العقد', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
-    { key: 'number', header: 'رقم العقد', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
-    { key: 'contractType', header: 'نوع العقد', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
+    { key: 'name', header: 'اسم العقد', headerClassName: baseHeaderClass, cellClassName: mainFluidCellClass },
+    { key: 'number', header: 'رقم العقد', headerClassName: baseHeaderClass, cellClassName: compactCellClass },
+    { key: 'contractType', header: 'نوع العقد', headerClassName: baseHeaderClass, cellClassName: compactCellClass },
     { 
       key: 'documentedExpiryDate', 
-      header: 'انتهاء العقد (الموثق / البيني)', 
+      header: 'تاريخ الانتهاء', 
       headerClassName: baseHeaderClass,
-      cellClassName: baseCellClass,
+      cellClassName: compactCellClass,
       render: (item) => (
-        <div className="inline-block text-right text-xs space-y-1">
-          {item.documentedExpiryDate && (
-            <div className="flex items-center gap-x-2">
-              <span className="font-medium text-gray-500">الموثق:</span>
-              <span className="text-gray-900 font-mono">{item.documentedExpiryDate}</span>
-            </div>
-          )}
-          {item.internalExpiryDate && (
-             <div className="flex items-center gap-x-2">
-              <span className="font-medium text-gray-500">البيني:</span>
-              <span className="text-gray-900 font-mono">{item.internalExpiryDate}</span>
-            </div>
-          )}
+        <div className="flex flex-col gap-1 items-start">
+          {item.documentedExpiryDate && renderRow('الموثق', item.documentedExpiryDate)}
+          {item.internalExpiryDate && renderRow('البيني', item.internalExpiryDate)}
         </div>
       ),
       exportValue: (item) => `الموثق: ${item.documentedExpiryDate || 'N/A'}, البيني: ${item.internalExpiryDate || 'N/A'}`
     },
     { 
       key: 'status', 
-      header: 'حالة العقد',
+      header: 'الحالة',
       headerClassName: baseHeaderClass,
-      cellClassName: baseCellClass,
+      cellClassName: compactCellClass,
       render: (item) => (
-        <div className="inline-block space-y-1.5">
+        <div className="flex flex-col gap-1.5 items-start">
           {item.documentedStatus && (
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-gray-500 text-xs text-left w-12">الموثق:</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${getStatusClass(item.documentedStatus)}`}>
+            <div className="flex items-center gap-1.5 justify-start">
+               <span className="text-xs text-gray-500 font-medium">الموثق:</span>
+               <span className={`px-2 py-0.5 rounded text-xs font-bold leading-none ${getStatusClass(item.documentedStatus)}`}>
                   {item.documentedStatus}
-              </span>
+               </span>
             </div>
           )}
           {item.internalStatus && (
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-gray-500 text-xs text-left w-12">البيني:</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${getStatusClass(item.internalStatus)}`}>
+            <div className="flex items-center gap-1.5 justify-start">
+               <span className="text-xs text-gray-500 font-medium">البيني:</span>
+               <span className={`px-2 py-0.5 rounded text-xs font-bold leading-none ${getStatusClass(item.internalStatus)}`}>
                   {item.internalStatus}
-              </span>
+               </span>
             </div>
           )}
         </div>
@@ -88,25 +95,11 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
       key: 'remaining', 
       header: 'المدة المتبقية', 
       headerClassName: baseHeaderClass,
-      cellClassName: baseCellClass,
+      cellClassName: compactCellClass,
       render: (item) => (
-        <div className="inline-block text-right text-xs space-y-1">
-          {item.documentedExpiryDate && (
-            <div className="flex items-center gap-x-2">
-              <span className="font-medium text-gray-500">الموثق:</span>
-              <span className={getRemainingPeriodClass(item.documentedExpiryDate)}>
-                {calculateRemainingPeriod(item.documentedExpiryDate)}
-              </span>
-            </div>
-          )}
-          {item.internalExpiryDate && (
-             <div className="flex items-center gap-x-2">
-              <span className="font-medium text-gray-500">البيني:</span>
-              <span className={getRemainingPeriodClass(item.internalExpiryDate)}>
-                {calculateRemainingPeriod(item.internalExpiryDate)}
-              </span>
-            </div>
-          )}
+        <div className="flex flex-col gap-1 items-start">
+          {item.documentedExpiryDate && renderRow('الموثق', calculateRemainingPeriod(item.documentedExpiryDate), `${getRemainingPeriodClass(item.documentedExpiryDate)} font-bold`)}
+          {item.internalExpiryDate && renderRow('البيني', calculateRemainingPeriod(item.internalExpiryDate), `${getRemainingPeriodClass(item.internalExpiryDate)} font-bold`)}
         </div>
       ),
       exportValue: (item) => {
@@ -119,21 +112,11 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
       key: 'documentedCost', 
       header: 'التكلفة', 
       headerClassName: baseHeaderClass,
-      cellClassName: baseCellClass,
+      cellClassName: compactCellClass,
       render: (item) => (
-        <div className="inline-block text-right text-xs space-y-1">
-          {item.documentedCost != null && (
-            <div className="flex items-center gap-x-2 justify-center">
-              <span className="font-medium text-gray-500">الموثق:</span>
-              <span className="text-gray-900 font-mono">{formatCost(item.documentedCost)}</span>
-            </div>
-          )}
-          {item.internalCost != null && (
-             <div className="flex items-center gap-x-2 justify-center">
-              <span className="font-medium text-gray-500">البيني:</span>
-              <span className="text-gray-900 font-mono">{formatCost(item.internalCost)}</span>
-            </div>
-          )}
+        <div className="flex flex-col gap-1 items-start">
+          {item.documentedCost != null && renderRow('الموثق', formatCost(item.documentedCost))}
+          {item.internalCost != null && renderRow('البيني', formatCost(item.internalCost))}
         </div>
       ),
       exportValue: (item) => {
@@ -142,9 +125,9 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
         return [docCost, internalCost].filter(Boolean).join(' | ');
       }
     },
-    { key: 'attachments', header: 'المرفقات', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
-    { key: 'notes', header: 'الملاحظات', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
-    { key: 'actions', header: 'إجراءات', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
+    { key: 'attachments', header: 'المرفقات', headerClassName: baseHeaderClass, cellClassName: compactCellClass },
+    { key: 'notes', header: 'الملاحظات', headerClassName: baseHeaderClass, cellClassName: noteCellClass },
+    { key: 'actions', header: 'إجراءات', headerClassName: baseHeaderClass, cellClassName: compactCellClass },
   ];
 
   const titleStyle = "flex items-center gap-3 px-5 py-2.5 bg-[#091526] text-white rounded-xl border-r-4 border-[#eab308] shadow-md hover:shadow-lg transition-all duration-300";
