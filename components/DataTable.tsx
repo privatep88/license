@@ -89,9 +89,25 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
       const isStatusKey = key === 'status';
 
       if (isStatusKey) {
+          // Primary Sort: Status Group
           const weightA = getStatusWeight(aValue);
           const weightB = getStatusWeight(bValue);
           comparison = weightA - weightB;
+
+          // Secondary Sort: Date (Automatic tie-breaker for same status)
+          // Sort logic: Ascending Date.
+          // For Expired: Oldest date (smallest timestamp) comes first (Most Expired).
+          // For Active/Soon: Oldest date (closest to today) comes first (Least Remaining Time).
+          if (comparison === 0) {
+              const getDate = (item: any) => item.expiryDate || item.documentedExpiryDate || item.internalExpiryDate || item.registrationDate;
+              const dateAStr = getDate(a);
+              const dateBStr = getDate(b);
+
+              const dateA = dateAStr ? new Date(dateAStr).getTime() : 9999999999999;
+              const dateB = dateBStr ? new Date(dateBStr).getTime() : 9999999999999;
+
+              comparison = dateA - dateB;
+          }
       }
       else if (isDateKey && typeof aValue === 'string' && typeof bValue === 'string') {
           const dateA = new Date(aValue).getTime();

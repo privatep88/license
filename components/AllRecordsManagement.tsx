@@ -256,7 +256,6 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
                         columns={columns}
                         onEdit={(item) => onEdit(item.originalRecord, item.originalType)}
                         onDelete={(item) => onDelete(item.originalRecord, item.originalType)}
-                        disableSorting={true}
                         isCollapsible={true}
                         defaultOpen={true}
                     />
@@ -283,7 +282,6 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
                         columns={columns}
                         onEdit={(item) => onEdit(item.originalRecord, item.originalType)}
                         onDelete={(item) => onDelete(item.originalRecord, item.originalType)}
-                        disableSorting={true}
                         isCollapsible={true}
                         defaultOpen={true}
                     />
@@ -310,7 +308,6 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
                         columns={columns}
                         onEdit={(item) => onEdit(item.originalRecord, item.originalType)}
                         onDelete={(item) => onDelete(item.originalRecord, item.originalType)}
-                        disableSorting={true}
                         isCollapsible={true}
                         defaultOpen={true}
                     />
@@ -332,7 +329,6 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
                 columns={columns}
                 onEdit={(item) => onEdit(item.originalRecord, item.originalType)}
                 onDelete={(item) => onDelete(item.originalRecord, item.originalType)}
-                disableSorting={true}
                 isCollapsible={true}
                 defaultOpen={true}
             />
