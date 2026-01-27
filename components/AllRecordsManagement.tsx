@@ -214,11 +214,11 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
                     icon={<AllRecordsIcon />}
                 />
                 <FilterCard 
-                    label="السجلات النشطة" 
-                    count={stats.active} 
-                    colorClass="bg-green-500"
-                    borderColorClass="border-green-500"
-                    icon={<CheckIcon />}
+                    label="السجلات المنتهية" 
+                    count={stats.expired} 
+                    colorClass="bg-red-500"
+                    borderColorClass="border-red-500"
+                    icon={<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>}
                 />
                  <FilterCard 
                     label="قاربت على الانتهاء" 
@@ -228,11 +228,11 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
                     icon={<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                 />
                 <FilterCard 
-                    label="السجلات المنتهية" 
-                    count={stats.expired} 
-                    colorClass="bg-red-500"
-                    borderColorClass="border-red-500"
-                    icon={<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>}
+                    label="السجلات النشطة" 
+                    count={stats.active} 
+                    colorClass="bg-green-500"
+                    borderColorClass="border-green-500"
+                    icon={<CheckIcon />}
                 />
             </div>
 
