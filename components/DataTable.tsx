@@ -5,6 +5,7 @@ import { RecordStatus, Attachment } from '../types';
 import { PlusIcon, PencilIcon, TrashIcon, DocumentIcon, PdfIcon, WordIcon, ExcelIcon, PowerPointIcon, ExportIcon, SortIcon, SortAscIcon, SortDescIcon, ExcelSheetIcon, ChevronDownIcon } from './icons/ActionIcons';
 import { getStatusClass, calculateRemainingPeriod, getRemainingPeriodClass, calculateRemainingDays, getStatusWeight } from '../utils';
 
+// Relaxed constraints for T to allow flexibility
 interface Column<T> {
   key: keyof T | 'actions' | 'remaining' | 'attachments' | 'serial';
   header: string;
@@ -42,7 +43,8 @@ const getReadableFileType = (name: string, type: string): string => {
     return 'ملف';
 };
 
-const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: string; documentedExpiryDate?: string; attachments?: Attachment[]; }>({ title, exportFileName, data, columns, onAdd, onEdit, onDelete, filterComponent, disableSorting = false, hideSortIcons = false, isCollapsible = false, defaultOpen = true }: DataTableProps<T>) => {
+// Generic T now only requires 'id'. Other fields are accessed with optional checks.
+const DataTable = <T extends { id: number; [key: string]: any }>({ title, exportFileName, data, columns, onAdd, onEdit, onDelete, filterComponent, disableSorting = false, hideSortIcons = false, isCollapsible = false, defaultOpen = true }: DataTableProps<T>) => {
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: null, direction: 'asc' });
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -85,7 +87,7 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
       
       let comparison = 0;
       
-      const isDateKey = ['expiryDate', 'documentedExpiryDate', 'internalExpiryDate', 'registrationDate'].includes(key as string);
+      const isDateKey = ['expiryDate', 'documentedExpiryDate', 'internalExpiryDate', 'registrationDate', 'deletedAt'].includes(key as string);
       const isStatusKey = key === 'status';
 
       if (isStatusKey) {
@@ -95,9 +97,6 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
           comparison = weightA - weightB;
 
           // Secondary Sort: Date (Automatic tie-breaker for same status)
-          // Sort logic: Ascending Date.
-          // For Expired: Oldest date (smallest timestamp) comes first (Most Expired).
-          // For Active/Soon: Oldest date (closest to today) comes first (Least Remaining Time).
           if (comparison === 0) {
               const getDate = (item: any) => item.expiryDate || item.documentedExpiryDate || item.internalExpiryDate || item.registrationDate;
               const dateAStr = getDate(a);
@@ -281,7 +280,7 @@ const DataTable = <T extends { id: number; status?: RecordStatus; expiryDate?: s
                         ) : col.key === 'attachments' ? (
                             item.attachments && item.attachments.length > 0 ? (
                                 <div className="flex items-center gap-1 justify-center flex-wrap max-w-[150px] mx-auto">
-                                    {item.attachments.map((att, index) => (
+                                    {item.attachments.map((att: Attachment, index: number) => (
                                         <a href={att.data} key={index} target="_blank" rel="noopener noreferrer" title={`${att.name || 'عرض الملف'} (${getReadableFileType(att.name, att.type)})`} className="hover:scale-110 transition-transform">
                                             {(() => {
                                                 const type = (att.type || '').toLowerCase();

@@ -408,21 +408,35 @@ const App: React.FC = () => {
       // We use the originalData stored in the archive to restore exactly as it was
       const originalRecord = item.originalData;
       
-      const setters: Partial<Record<RecordDataType, React.Dispatch<React.SetStateAction<any[]>>>> = {
-        commercialLicense: setCommercialLicenses,
-        operationalLicense: setOperationalLicenses,
-        civilDefenseCert: setCivilDefenseCerts,
-        specialAgency: setSpecialAgencies,
-        leaseContract: setLeaseContracts,
-        generalContract: setGeneralContracts,
-        procedure: setProcedures,
-        otherTopic: setOtherTopicsData,
-        trademarkCert: setTrademarkCerts,
-      };
-
-      const setter = setters[item.originalType];
-      if (setter) {
-          setter(prev => [...prev, originalRecord]);
+      // Use explicit type handling for the restoration logic
+      switch (item.originalType) {
+          case 'commercialLicense':
+              setCommercialLicenses(prev => [...prev, originalRecord as License]);
+              break;
+          case 'operationalLicense':
+              setOperationalLicenses(prev => [...prev, originalRecord as License]);
+              break;
+          case 'civilDefenseCert':
+              setCivilDefenseCerts(prev => [...prev, originalRecord as License]);
+              break;
+          case 'specialAgency':
+              setSpecialAgencies(prev => [...prev, originalRecord as License]);
+              break;
+          case 'leaseContract':
+              setLeaseContracts(prev => [...prev, originalRecord as Contract]);
+              break;
+          case 'generalContract':
+              setGeneralContracts(prev => [...prev, originalRecord as License]);
+              break;
+          case 'procedure':
+              setProcedures(prev => [...prev, originalRecord as Procedure]);
+              break;
+          case 'otherTopic':
+              setOtherTopicsData(prev => [...prev, originalRecord as License]);
+              break;
+          case 'trademarkCert':
+              setTrademarkCerts(prev => [...prev, originalRecord as License]);
+              break;
       }
       
       alert("تم استعادة السجل بنجاح");
@@ -439,13 +453,22 @@ const App: React.FC = () => {
         // SOFT DELETE (MOVE TO ARCHIVE)
         const record = recordToDelete as RecordType;
         
-        // 1. Add to Archive
+        // 1. Add to Archive - Construct generic properties safely
+        // Determine common props or defaults if missing in source record
         const archivedItem: ArchivedRecord = {
-            ...record as any, // Spread all props
+            id: record.id,
+            name: 'name' in record ? record.name : (record as any).licenseName || 'No Name',
+            number: 'number' in record ? record.number : undefined,
+            status: 'status' in record ? record.status : undefined,
+            cost: 'cost' in record ? record.cost : undefined,
+            notes: record.notes,
+            attachments: record.attachments,
+            
             originalType: type,
             deletionDate: new Date().toISOString(),
             originalData: record // Store deep copy/reference of original state
         };
+
         setArchivedRecords(prev => [archivedItem, ...prev]);
 
         // 2. Remove from Active List
@@ -480,9 +503,14 @@ const App: React.FC = () => {
         // Update the record inside the archive
         setArchivedRecords(prev => prev.map(item => {
              if (item.id === recordToSave.id) {
+                 // Cast recordToSave to any to access properties safely for update
+                 const updated = recordToSave as any;
                  return {
                      ...item,
-                     ...recordToSave,
+                     name: updated.name || updated.licenseName || item.name,
+                     number: updated.number || item.number,
+                     status: updated.status || item.status,
+                     notes: updated.notes || item.notes,
                      originalData: { ...item.originalData, ...recordToSave } // Update original data snapshot too
                  };
              }
@@ -511,7 +539,7 @@ const App: React.FC = () => {
         if ('expiryDate' in recordToSave && recordToSave.expiryDate) {
             calculatedStatus = getCalculatedStatus(recordToSave.expiryDate);
         } else {
-            // Procedure type does not have status
+            // Procedure type usually doesn't have status, but we added optional status to type
             calculatedStatus = 'status' in recordToSave ? recordToSave.status : RecordStatus.Active;
         }
         recordWithStatus = {
@@ -618,7 +646,7 @@ const App: React.FC = () => {
 
   const filteredArchivedRecords = archivedRecords.filter(item =>
     item.name.toLowerCase().includes(lowercasedQuery) ||
-    item.number.toLowerCase().includes(lowercasedQuery) ||
+    (item.number && item.number.toLowerCase().includes(lowercasedQuery)) ||
     item.notes?.toLowerCase().includes(lowercasedQuery)
   );
 
@@ -837,7 +865,13 @@ const App: React.FC = () => {
       <Modal isOpen={modalInfo.isOpen} onClose={handleCloseModal} title={modalInfo.record ? "تعديل السجل" : "إضافة سجل جديد"}>
         {modalInfo.isOpen && (
             <RecordForm
-                initialData={modalInfo.record}
+                initialData={
+                    modalInfo.record 
+                        ? ('originalData' in modalInfo.record 
+                            ? (modalInfo.record as ArchivedRecord).originalData 
+                            : modalInfo.record as RecordType)
+                        : undefined
+                }
                 type={modalInfo.type!}
                 onSave={handleSave}
                 onCancel={handleCloseModal}

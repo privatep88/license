@@ -68,9 +68,23 @@ export interface Procedure {
   requirements?: string;
   notes?: string;
   attachments?: Attachment[];
+  // Added optional fields for DataTable compatibility
+  status?: RecordStatus;
+  expiryDate?: string;
 }
 
-export interface ArchivedRecord extends License {
+// ArchivedRecord now explicitly defines the structure needed for the table, 
+// plus the originalData container.
+export interface ArchivedRecord {
+    id: number;
+    name: string;
+    number?: string; // Optional because Procedure might not have 'number' in the same sense, though it has in UI
+    status?: RecordStatus;
+    cost?: number;
+    notes?: string;
+    attachments?: Attachment[];
+    
+    // Archive specific fields
     originalType: RecordDataType;
     deletionDate: string;
     originalData: RecordType; // Store complete original structure

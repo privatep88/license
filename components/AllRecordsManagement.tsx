@@ -20,13 +20,23 @@ interface AllRecordsManagementProps {
     onDelete: (item: RecordType, type: RecordDataType) => void;
 }
 
-// Interface for the unified row in the table
-interface UnifiedRecord extends License {
+// Unified Record Type that allows for properties from both Licenses and Contracts
+interface UnifiedRecord {
+    id: number;
+    name: string;
+    number: string;
+    status: RecordStatus;
+    cost: number;
+    expiryDate: string; // Unified date field
+    notes?: string;
+    attachments?: any[];
+    
+    // Metadata
     originalType: RecordDataType;
     recordTypeLabel: string;
     displayCost: number;
     originalRecord: RecordType;
-    subDetail?: string; // For displaying extra info like Contract Type or Renewal Type
+    subDetail?: string; 
 }
 
 const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
@@ -46,7 +56,15 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
         // Helper for standard licenses
         const mapLicense = (list: License[], type: RecordDataType, label: string, extraInfoField?: keyof License): UnifiedRecord[] => 
             list.map(item => ({
-                ...item,
+                id: item.id,
+                name: item.name,
+                number: item.number,
+                status: item.status,
+                expiryDate: item.expiryDate,
+                cost: item.cost,
+                notes: item.notes,
+                attachments: item.attachments,
+                
                 originalType: type,
                 recordTypeLabel: label,
                 displayCost: item.cost,
@@ -60,17 +78,17 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
                 id: item.id,
                 name: item.name,
                 number: item.number,
+                status: item.status, 
                 // Logic: Prefer Documented Expiry, fallback to Internal. This ensures we always have a date for sorting/filtering.
                 expiryDate: item.documentedExpiryDate || item.internalExpiryDate, 
-                status: item.status, 
-                renewalType: undefined,
                 // Logic: Sum costs for total value
                 cost: (item.documentedCost || 0) + (item.internalCost || 0),
-                displayCost: (item.documentedCost || 0) + (item.internalCost || 0),
                 notes: item.notes,
                 attachments: item.attachments,
+                
                 originalType: type,
                 recordTypeLabel: label,
+                displayCost: (item.documentedCost || 0) + (item.internalCost || 0),
                 originalRecord: item,
                 subDetail: item.contractType // Show Contract Type (Documented/Internal) as detail
             }));
