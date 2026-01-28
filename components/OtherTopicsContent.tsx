@@ -26,19 +26,33 @@ const OtherTopicsContent: React.FC<OtherTopicsContentProps> = ({
   const filteredTopics = topics.filter(l => statusFilter === 'all' || l.status === statusFilter);
   
   const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-center align-middle font-medium text-white text-sm [&>button]:justify-center";
-  const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center text-sm";
-  const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm text-sm";
+  
+  // --- Compact Styles for Optimized Widths ---
+  const compactHeaderClass = "whitespace-nowrap px-1 py-3 text-center align-middle font-medium text-white text-sm w-px";
+  const compactCellClass = "whitespace-nowrap px-1 py-3 text-gray-700 align-middle text-center text-sm w-px";
+  
+  // Fluid Name Cell: Expands to fill space, wraps text properly
+  const fluidNameCellClass = "px-2 py-3 text-gray-700 align-middle text-center text-sm whitespace-normal break-words min-w-[200px] leading-snug";
+
+  // Note Cell: slightly wider but constrained
+  const wideCellClass = "px-2 py-3 text-gray-700 align-middle text-center text-sm whitespace-normal break-words min-w-[150px] max-w-[200px] leading-snug";
 
   const otherTopicsColumns: { key: keyof License | 'actions' | 'remaining' | 'attachments' | 'serial'; header: string; render?: (item: License) => React.ReactNode; exportValue?: (item: License) => string | number | null | undefined; headerClassName?: string; cellClassName?: string; }[] = [
-    { key: 'name', header: 'الموضوع', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
-    { key: 'number', header: 'الرقم', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
-    { key: 'expiryDate', header: 'تاريخ الانتهاء', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
-    { key: 'status', header: 'الحالة', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
-    { key: 'remaining', header: 'المدة المتبقية', exportValue: (item) => calculateRemainingDays(item.expiryDate), headerClassName: baseHeaderClass, cellClassName: baseCellClass },
-    { key: 'cost', header: 'التكلفة', render: (item) => formatCost(item.cost), exportValue: (item) => item.cost, headerClassName: baseHeaderClass, cellClassName: baseCellClass },
-    { key: 'attachments', header: 'المرفقات', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
+    { 
+        key: 'serial', 
+        header: 'م', 
+        headerClassName: "whitespace-nowrap px-1 py-3 text-center align-middle font-medium text-white text-sm w-px", 
+        cellClassName: "whitespace-nowrap px-1 py-4 text-gray-500 font-bold align-middle text-center text-xs bg-slate-50 border-l border-slate-100 w-px" 
+    },
+    { key: 'name', header: 'الموضوع', headerClassName: baseHeaderClass, cellClassName: fluidNameCellClass },
+    { key: 'number', header: 'الرقم', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'expiryDate', header: 'تاريخ الانتهاء', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'status', header: 'الحالة', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'remaining', header: 'المدة المتبقية', exportValue: (item) => calculateRemainingDays(item.expiryDate), headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'cost', header: 'التكلفة', render: (item) => formatCost(item.cost), exportValue: (item) => item.cost, headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'attachments', header: 'المرفقات', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
     { key: 'notes', header: 'الملاحظات', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
-    { key: 'actions', header: 'إجراءات', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
+    { key: 'actions', header: 'إجراءات', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
   ];
   
   const titleStyle = "flex items-center gap-3 px-5 py-2.5 bg-[#091526] text-white rounded-xl border-r-4 border-[#eab308] shadow-md hover:shadow-lg transition-all duration-300";

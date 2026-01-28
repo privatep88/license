@@ -49,7 +49,23 @@ const LicenseManagement: React.FC<LicenseManagementProps> = ({
 
   const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-center align-middle font-medium text-white text-sm [&>button]:justify-center";
   const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center text-sm";
-  const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm text-sm";
+  
+  // Standard wide cell for other tables (Operational & Civil Defense)
+  const wideCellClass = "px-2 py-3 text-gray-700 align-middle text-center text-sm whitespace-normal break-words min-w-[150px] max-w-[200px] leading-snug";
+  
+  // --- Compact Styles for Commercial License Table ---
+  const compactHeaderClass = "whitespace-nowrap px-1 py-3 text-center align-middle font-medium text-white text-sm w-px";
+  const compactCellClass = "whitespace-nowrap px-1 py-3 text-gray-700 align-middle text-center text-sm w-px";
+  
+  // Fluid Name Cell for Commercial License: Expands to fill space, wraps text
+  const fluidNameCellClass = "px-2 py-3 text-gray-700 align-middle text-center text-sm whitespace-normal break-words min-w-[200px] leading-snug";
+  
+  const serialColumn: LicenseColumn = { 
+    key: 'serial', 
+    header: 'م', 
+    headerClassName: "whitespace-nowrap px-1 py-3 text-center align-middle font-medium text-white text-sm w-px", 
+    cellClassName: "whitespace-nowrap px-1 py-4 text-gray-500 font-bold align-middle text-center text-xs bg-slate-50 border-l border-slate-100 w-px" 
+  };
 
   const baseLicenseColumns: LicenseColumn[] = [
     { key: 'number', header: 'رقم الرخصة', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
@@ -62,23 +78,46 @@ const LicenseManagement: React.FC<LicenseManagementProps> = ({
     { key: 'actions', header: 'إجراءات', headerClassName: baseHeaderClass, cellClassName: baseCellClass },
   ];
 
+  // Specialized Columns for Commercial Licenses (Optimized Widths)
   const commercialLicenseColumns: LicenseColumn[] = [
-    { key: 'name', header: 'اسم الرخصة التجارية', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
-    ...baseLicenseColumns
+    serialColumn,
+    { key: 'name', header: 'اسم الرخصة التجارية', headerClassName: baseHeaderClass, cellClassName: fluidNameCellClass },
+    { key: 'number', header: 'رقم الرخصة', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'expiryDate', header: 'تاريخ الانتهاء', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'status', header: 'حالة الرخصة', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'remaining', header: 'المدة المتبقية', exportValue: (item) => calculateRemainingDays(item.expiryDate), headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'cost', header: 'التكلفة', render: (item) => formatCost(item.cost), exportValue: (item) => item.cost, headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'attachments', header: 'المرفقات', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'notes', header: 'الملاحظات', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
+    { key: 'actions', header: 'إجراءات', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
   ];
   
+  // Specialized Columns for Operational Licenses (Optimized Widths)
   const operationalLicenseColumns: LicenseColumn[] = [
-    { key: 'name', header: 'الموضوع', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
-    ...baseLicenseColumns.map(c => c.key === 'number' ? {...c, header: 'الرقم'} : c)
+    serialColumn,
+    { key: 'name', header: 'اسم الرخصة التشغيلية', headerClassName: baseHeaderClass, cellClassName: fluidNameCellClass },
+    { key: 'number', header: 'الرقم', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'expiryDate', header: 'تاريخ الانتهاء', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'status', header: 'حالة الرخصة', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'remaining', header: 'المدة المتبقية', exportValue: (item) => calculateRemainingDays(item.expiryDate), headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'cost', header: 'التكلفة', render: (item) => formatCost(item.cost), exportValue: (item) => item.cost, headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'attachments', header: 'المرفقات', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'notes', header: 'الملاحظات', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
+    { key: 'actions', header: 'إجراءات', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
   ];
   
+  // Specialized Columns for Civil Defense Certificates (Optimized Widths)
   const civilDefenseCertColumns: LicenseColumn[] = [
-    { key: 'name', header: 'الموضوع', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
-    ...baseLicenseColumns.map(c => {
-        if (c.key === 'number') return { ...c, header: 'الرقم' };
-        if (c.key === 'status') return { ...c, header: 'حالة الشهادة' };
-        return c;
-    })
+    serialColumn,
+    { key: 'name', header: 'اسم الشهادة', headerClassName: baseHeaderClass, cellClassName: fluidNameCellClass },
+    { key: 'number', header: 'الرقم', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'expiryDate', header: 'تاريخ الانتهاء', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'status', header: 'حالة الشهادة', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'remaining', header: 'المدة المتبقية', exportValue: (item) => calculateRemainingDays(item.expiryDate), headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'cost', header: 'التكلفة', render: (item) => formatCost(item.cost), exportValue: (item) => item.cost, headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'attachments', header: 'المرفقات', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'notes', header: 'الملاحظات', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
+    { key: 'actions', header: 'إجراءات', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
   ];
 
   const titleStyle = "flex items-center gap-3 px-5 py-2.5 bg-[#091526] text-white rounded-xl border-r-4 border-[#eab308] shadow-md hover:shadow-lg transition-all duration-300";

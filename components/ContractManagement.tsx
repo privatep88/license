@@ -19,18 +19,17 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
 
   const filteredContracts = contracts.filter(c => statusFilter === 'all' || c.status === statusFilter);
 
-  // Custom Styles for this Table Only
-  const baseHeaderClass = "whitespace-nowrap px-1 py-3 text-center align-middle font-medium text-white text-sm [&>button]:justify-center";
+  const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-center align-middle font-medium text-white text-sm [&>button]:justify-center";
   
-  // Compact Cell: Forces column to shrink to content width (w-px)
+  // --- Compact Styles for Optimized Widths ---
+  const compactHeaderClass = "whitespace-nowrap px-1 py-3 text-center align-middle font-medium text-white text-sm w-px";
   const compactCellClass = "whitespace-nowrap px-1 py-3 text-gray-700 align-middle text-center text-sm w-px";
   
-  // Main Fluid Cell (Name): Allows text wrapping, constrained max width to prevent overflow
-  // Removed font-semibold to match Supplier Contracts
-  const mainFluidCellClass = "px-2 py-3 text-gray-700 align-middle text-center text-sm whitespace-normal min-w-[180px] max-w-[300px]";
-  
-  // Note Cell: Allows wrapping, smaller min-width
-  const noteCellClass = "px-2 py-3 text-gray-700 align-middle text-center text-sm whitespace-normal min-w-[150px] max-w-[250px]";
+  // Fluid Name Cell: Expands to fill space, wraps text properly
+  const fluidNameCellClass = "px-2 py-3 text-gray-700 align-middle text-center text-sm whitespace-normal break-words min-w-[200px] leading-snug";
+
+  // Note Cell: Reduced width for better table fit
+  const wideCellClass = "px-2 py-3 text-gray-700 align-middle text-center text-sm whitespace-normal break-words min-w-[100px] max-w-[150px] leading-snug";
 
   // Helper for internal rows (Label + Value close together) - Fonts normalized to match other tables (text-sm for value)
   const renderRow = (label: string, value: React.ReactNode, colorClass: string = "text-gray-900") => (
@@ -48,13 +47,19 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
     headerClassName?: string;
     cellClassName?: string;
   }[] = [
-    { key: 'name', header: 'اسم العقد', headerClassName: baseHeaderClass, cellClassName: mainFluidCellClass },
-    { key: 'number', header: 'رقم العقد', headerClassName: baseHeaderClass, cellClassName: compactCellClass },
-    { key: 'contractType', header: 'نوع العقد', headerClassName: baseHeaderClass, cellClassName: compactCellClass },
+    { 
+        key: 'serial', 
+        header: 'م', 
+        headerClassName: "whitespace-nowrap px-1 py-3 text-center align-middle font-medium text-white text-sm w-px", 
+        cellClassName: "whitespace-nowrap px-1 py-4 text-gray-500 font-bold align-middle text-center text-xs bg-slate-50 border-l border-slate-100 w-px" 
+    },
+    { key: 'name', header: 'اسم العقد', headerClassName: baseHeaderClass, cellClassName: fluidNameCellClass },
+    { key: 'number', header: 'رقم العقد', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'contractType', header: 'نوع العقد', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
     { 
       key: 'documentedExpiryDate', 
       header: 'تاريخ الانتهاء', 
-      headerClassName: baseHeaderClass,
+      headerClassName: compactHeaderClass,
       cellClassName: compactCellClass,
       render: (item) => (
         <div className="flex flex-col gap-1 items-start">
@@ -67,7 +72,7 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
     { 
       key: 'status', 
       header: 'الحالة',
-      headerClassName: baseHeaderClass,
+      headerClassName: compactHeaderClass,
       cellClassName: compactCellClass,
       render: (item) => (
         <div className="flex flex-col gap-1.5 items-start">
@@ -94,7 +99,7 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
     { 
       key: 'remaining', 
       header: 'المدة المتبقية', 
-      headerClassName: baseHeaderClass,
+      headerClassName: compactHeaderClass,
       cellClassName: compactCellClass,
       render: (item) => (
         <div className="flex flex-col gap-1 items-start">
@@ -111,7 +116,7 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
     { 
       key: 'documentedCost', 
       header: 'التكلفة', 
-      headerClassName: baseHeaderClass,
+      headerClassName: compactHeaderClass,
       cellClassName: compactCellClass,
       render: (item) => (
         <div className="flex flex-col gap-1 items-start">
@@ -125,9 +130,9 @@ const ContractManagement: React.FC<ContractManagementProps> = ({ contracts, onAd
         return [docCost, internalCost].filter(Boolean).join(' | ');
       }
     },
-    { key: 'attachments', header: 'المرفقات', headerClassName: baseHeaderClass, cellClassName: compactCellClass },
-    { key: 'notes', header: 'الملاحظات', headerClassName: baseHeaderClass, cellClassName: noteCellClass },
-    { key: 'actions', header: 'إجراءات', headerClassName: baseHeaderClass, cellClassName: compactCellClass },
+    { key: 'attachments', header: 'المرفقات', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
+    { key: 'notes', header: 'الملاحظات', headerClassName: baseHeaderClass, cellClassName: wideCellClass },
+    { key: 'actions', header: 'إجراءات', headerClassName: compactHeaderClass, cellClassName: compactCellClass },
   ];
 
   const titleStyle = "flex items-center gap-3 px-5 py-2.5 bg-[#091526] text-white rounded-xl border-r-4 border-[#eab308] shadow-md hover:shadow-lg transition-all duration-300";

@@ -117,15 +117,17 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
 
     const baseHeaderClass = "whitespace-nowrap px-2 py-3 text-center align-middle font-medium text-white text-sm [&>button]:justify-center";
     const baseCellClass = "whitespace-nowrap px-2 py-4 text-gray-700 align-middle text-center text-sm";
-    const wideCellClass = "px-2 py-4 text-gray-700 align-middle text-center break-words max-w-sm text-sm";
+    
+    // Updated class for wrapping text properly within a restricted width
+    const wideCellClass = "px-2 py-3 text-gray-700 align-middle text-center text-sm whitespace-normal break-words min-w-[150px] max-w-[220px] leading-snug";
 
     const columns: { key: keyof UnifiedRecord | 'actions' | 'remaining' | 'attachments' | 'serial'; header: string; render?: (item: UnifiedRecord) => React.ReactNode; exportValue?: (item: UnifiedRecord) => string | number | null | undefined; headerClassName?: string; cellClassName?: string; }[] = [
         { 
             key: 'serial', 
-            header: '#', 
-            headerClassName: "whitespace-nowrap px-2 py-3 text-center align-middle font-medium text-white text-sm w-12", 
-            // Fixed serial column style
-            cellClassName: "whitespace-nowrap px-2 py-4 text-gray-500 font-bold align-middle text-center text-xs bg-slate-50 border-l border-slate-100" 
+            header: 'م', 
+            // Reduced width to w-[40px] and ensured compact padding
+            headerClassName: "whitespace-nowrap px-1 py-3 text-center align-middle font-medium text-white text-sm w-[40px]", 
+            cellClassName: "whitespace-nowrap px-1 py-4 text-gray-700 font-bold align-middle text-center text-sm bg-slate-50 border-l border-slate-100 w-[40px]" 
         },
         { 
             key: 'recordTypeLabel', 
@@ -270,7 +272,7 @@ const AllRecordsManagement: React.FC<AllRecordsManagementProps> = ({
                         title={
                             <div className={alertTitleStyle}>
                                 <span className="text-yellow-600">
-                                    <svg className="h-6 w-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                    <svg className="h-6 w-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 </span>
                                 <span className="font-bold text-lg tracking-wide text-yellow-900">
                                     سجلات قاربت على الانتهاء (تنبيه)
