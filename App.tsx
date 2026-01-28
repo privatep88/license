@@ -7,10 +7,11 @@ import ContractManagement from './components/ContractManagement';
 import SpecialAgenciesManagement from './components/OtherTopics';
 import SupplierContractsManagement from './components/SupplierContractsManagement';
 import AllRecordsManagement from './components/AllRecordsManagement';
+import ArchiveManagement from './components/ArchiveManagement';
 import Modal from './components/Modal';
 import RecordForm from './components/RecordForm';
 import Footer from './components/Footer';
-import type { Tab, RecordType, RecordDataType, License, Contract, Procedure } from './types';
+import type { Tab, RecordType, RecordDataType, License, Contract, Procedure, ArchivedRecord } from './types';
 import { RecordStatus } from './types';
 import { TABS, MOCK_COMMERCIAL_LICENSES, MOCK_OPERATIONAL_LICENSES, MOCK_CIVIL_DEFENSE_CERTS, MOCK_SPECIAL_AGENCIES, MOCK_LEASE_CONTRACTS, MOCK_GENERAL_CONTRACTS, MOCK_PROCEDURES, ADMIN_EMAIL, MOCK_OTHER_TOPICS, MOCK_TRADEMARK_CERTS } from './constants';
 import OtherTopicsContent from './components/OtherTopicsContent';
@@ -79,6 +80,7 @@ const App: React.FC = () => {
   const [procedures, setProcedures] = useState<Procedure[]>([]);
   const [otherTopicsData, setOtherTopicsData] = useState<License[]>([]);
   const [trademarkCerts, setTrademarkCerts] = useState<License[]>([]);
+  const [archivedRecords, setArchivedRecords] = useState<ArchivedRecord[]>([]);
   
   // Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,8 +94,8 @@ const App: React.FC = () => {
   const isInitialMount = useRef(true); // Ref to track initial load
 
   // Modal State
-  const [modalInfo, setModalInfo] = useState<{ isOpen: boolean; record?: RecordType; type?: RecordDataType }>({ isOpen: false });
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; record?: RecordType; type?: RecordDataType }>({ isOpen: false });
+  const [modalInfo, setModalInfo] = useState<{ isOpen: boolean; record?: RecordType | ArchivedRecord; type?: RecordDataType }>({ isOpen: false });
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; record?: RecordType | ArchivedRecord; type?: RecordDataType; isPermanent?: boolean }>({ isOpen: false });
 
 
   // Initial Data Loading Effect (Load from LocalStorage or Fallback to Mocks)
@@ -137,6 +139,7 @@ const App: React.FC = () => {
              setProcedures(data.procedures || []);
              setOtherTopicsData(processLicenses(data.otherTopicsData || []));
              setTrademarkCerts(processLicenses(data.trademarkCerts || []));
+             setArchivedRecords(data.archivedRecords || []);
         } else {
              // Fallback to Mocks if no saved data
              setCommercialLicenses(processLicenses(MOCK_COMMERCIAL_LICENSES));
@@ -148,6 +151,7 @@ const App: React.FC = () => {
              setProcedures(MOCK_PROCEDURES);
              setOtherTopicsData(processLicenses(MOCK_OTHER_TOPICS));
              setTrademarkCerts(processLicenses(MOCK_TRADEMARK_CERTS));
+             setArchivedRecords([]);
         }
     };
 
@@ -166,7 +170,8 @@ const App: React.FC = () => {
         generalContracts,
         procedures,
         otherTopicsData,
-        trademarkCerts
+        trademarkCerts,
+        archivedRecords
     };
 
     // This prevents saving on the very first render when arrays are empty,
@@ -202,6 +207,7 @@ const App: React.FC = () => {
       procedures,
       otherTopicsData,
       trademarkCerts,
+      archivedRecords
   ]);
 
   // Global Save Handler (Manual Trigger - kept for user reassurance)
@@ -215,7 +221,8 @@ const App: React.FC = () => {
           generalContracts,
           procedures,
           otherTopicsData,
-          trademarkCerts
+          trademarkCerts,
+          archivedRecords
       };
       
       try {
@@ -239,6 +246,7 @@ const App: React.FC = () => {
           procedures,
           otherTopicsData,
           trademarkCerts,
+          archivedRecords,
           backupDate: new Date().toISOString()
       };
       
@@ -254,7 +262,7 @@ const App: React.FC = () => {
       URL.revokeObjectURL(url);
   };
 
-  const handleRestore = (file: File) => {
+  const handleRestoreBackup = (file: File) => {
       const reader = new FileReader();
       reader.onload = (e) => {
           try {
@@ -280,7 +288,8 @@ const App: React.FC = () => {
                       generalContracts: json.generalContracts || [],
                       procedures: json.procedures || [],
                       otherTopicsData: json.otherTopicsData || [],
-                      trademarkCerts: json.trademarkCerts || []
+                      trademarkCerts: json.trademarkCerts || [],
+                      archivedRecords: json.archivedRecords || []
                   };
 
                   // Force save to local storage immediately before reload
@@ -330,14 +339,15 @@ const App: React.FC = () => {
             datesToCheck.push(item.internalExpiryDate);
         }
 
-        // Check if ANY of the dates fall in the [Today -> Today + 120 days] window
+        // Check if ANY of the dates fall in the critical range (Past OR Future within 120 days)
         return datesToCheck.some(dateStr => {
             const parts = dateStr.split('-');
             if (parts.length !== 3) return false;
             const dDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
             
-            // Logic: It must be >= Today (Not Expired) AND <= Threshold (Soon)
-            return dDate >= today && dDate <= thresholdDate;
+            // Logic: Include EXPIRED (dDate < today) and SOON (dDate <= threshold)
+            // Simply put: if date is less than or equal to the threshold, it's either expired or expiring soon.
+            return dDate <= thresholdDate;
         });
     });
 
@@ -373,7 +383,8 @@ const App: React.FC = () => {
     setModalInfo({ isOpen: true, type: type, record: undefined });
   };
 
-  const handleEdit = (record: RecordType, type: RecordDataType) => {
+  const handleEdit = (record: RecordType | ArchivedRecord, type: RecordDataType) => {
+     // If it's an archive record editing, we pass it directly
     setModalInfo({ isOpen: true, type: type, record: record });
   };
 
@@ -382,14 +393,22 @@ const App: React.FC = () => {
   };
   
   const handleDelete = (recordToDelete: RecordType, type: RecordDataType) => {
-    setDeleteConfirmation({ isOpen: true, record: recordToDelete, type: type });
+    setDeleteConfirmation({ isOpen: true, record: recordToDelete, type: type, isPermanent: false });
   };
 
-  const handleConfirmDelete = () => {
-    const { record: recordToDelete, type } = deleteConfirmation;
-    if (!recordToDelete || !type) return;
+  const handlePermanentDelete = (recordToDelete: ArchivedRecord) => {
+    setDeleteConfirmation({ isOpen: true, record: recordToDelete, type: recordToDelete.originalType, isPermanent: true });
+  };
 
-    const setters: Partial<Record<RecordDataType, React.Dispatch<React.SetStateAction<any[]>>>> = {
+  const handleRestore = (item: ArchivedRecord) => {
+      // 1. Remove from Archive
+      setArchivedRecords(prev => prev.filter(r => r.id !== item.id));
+
+      // 2. Add back to original list
+      // We use the originalData stored in the archive to restore exactly as it was
+      const originalRecord = item.originalData;
+      
+      const setters: Partial<Record<RecordDataType, React.Dispatch<React.SetStateAction<any[]>>>> = {
         commercialLicense: setCommercialLicenses,
         operationalLicense: setOperationalLicenses,
         civilDefenseCert: setCivilDefenseCerts,
@@ -399,19 +418,81 @@ const App: React.FC = () => {
         procedure: setProcedures,
         otherTopic: setOtherTopicsData,
         trademarkCert: setTrademarkCerts,
-    };
+      };
 
-    const setter = setters[type];
-    if (setter) {
-        setter(prev => prev.filter(r => r.id !== recordToDelete.id));
+      const setter = setters[item.originalType];
+      if (setter) {
+          setter(prev => [...prev, originalRecord]);
+      }
+      
+      alert("تم استعادة السجل بنجاح");
+  };
+
+  const handleConfirmDelete = () => {
+    const { record: recordToDelete, type, isPermanent } = deleteConfirmation;
+    if (!recordToDelete || !type) return;
+
+    if (isPermanent) {
+        // PERMANENT DELETE FROM ARCHIVE
+        setArchivedRecords(prev => prev.filter(r => r.id !== recordToDelete.id));
+    } else {
+        // SOFT DELETE (MOVE TO ARCHIVE)
+        const record = recordToDelete as RecordType;
+        
+        // 1. Add to Archive
+        const archivedItem: ArchivedRecord = {
+            ...record as any, // Spread all props
+            originalType: type,
+            deletionDate: new Date().toISOString(),
+            originalData: record // Store deep copy/reference of original state
+        };
+        setArchivedRecords(prev => [archivedItem, ...prev]);
+
+        // 2. Remove from Active List
+        const setters: Partial<Record<RecordDataType, React.Dispatch<React.SetStateAction<any[]>>>> = {
+            commercialLicense: setCommercialLicenses,
+            operationalLicense: setOperationalLicenses,
+            civilDefenseCert: setCivilDefenseCerts,
+            specialAgency: setSpecialAgencies,
+            leaseContract: setLeaseContracts,
+            generalContract: setGeneralContracts,
+            procedure: setProcedures,
+            otherTopic: setOtherTopicsData,
+            trademarkCert: setTrademarkCerts,
+        };
+
+        const setter = setters[type];
+        if (setter) {
+            setter(prev => prev.filter(r => r.id !== recordToDelete.id));
+        }
     }
 
-    setDeleteConfirmation({ isOpen: false, record: undefined, type: undefined });
+    setDeleteConfirmation({ isOpen: false, record: undefined, type: undefined, isPermanent: false });
   };
 
   const handleSave = (recordToSave: RecordType) => {
-    const { type } = modalInfo;
+    const { type, record: originalRecord } = modalInfo;
     
+    // Check if we are editing an archived record
+    const isArchivedEdit = activeTab.id === 'archive';
+
+    if (isArchivedEdit) {
+        // Update the record inside the archive
+        setArchivedRecords(prev => prev.map(item => {
+             if (item.id === recordToSave.id) {
+                 return {
+                     ...item,
+                     ...recordToSave,
+                     originalData: { ...item.originalData, ...recordToSave } // Update original data snapshot too
+                 };
+             }
+             return item;
+        }));
+        handleCloseModal();
+        return;
+    }
+
+    // Normal Save Logic
     let recordWithStatus: RecordType;
         
     if (type === 'leaseContract') {
@@ -535,6 +616,12 @@ const App: React.FC = () => {
     item.notes?.toLowerCase().includes(lowercasedQuery)
   );
 
+  const filteredArchivedRecords = archivedRecords.filter(item =>
+    item.name.toLowerCase().includes(lowercasedQuery) ||
+    item.number.toLowerCase().includes(lowercasedQuery) ||
+    item.notes?.toLowerCase().includes(lowercasedQuery)
+  );
+
   // Calculate Tab Counts
   const tabCounts = useMemo(() => {
     const allRecordsCount = filteredCommercialLicenses.length + 
@@ -555,7 +642,8 @@ const App: React.FC = () => {
         trademarks: filteredTrademarkCerts.length,
         otherTopics: filteredOtherTopicsData.length,
         procedures: filteredProcedures.length,
-        allRecords: allRecordsCount 
+        allRecords: allRecordsCount,
+        archive: filteredArchivedRecords.length
     };
   }, [
     filteredCommercialLicenses, 
@@ -566,7 +654,8 @@ const App: React.FC = () => {
     filteredSpecialAgencies, 
     filteredTrademarkCerts, 
     filteredOtherTopicsData, 
-    filteredProcedures
+    filteredProcedures,
+    filteredArchivedRecords
   ]);
 
   const handleSendNotificationEmail = () => {
@@ -574,7 +663,7 @@ const App: React.FC = () => {
     const body = `
         تحية طيبة,
 
-        يرجى العلم بأن السجلات التالية قد دخلت في فترة التنبيه (أقل من 4 أشهر) وتحولت حالتها من "نشط" إلى "قاربت على الانتهاء":
+        يرجى العلم بأن السجلات التالية قد دخلت في فترة التنبيه (أقل من 4 أشهر) أو انتهت صلاحيتها:
 
         ${expiringItems.map(item =>
           `- ${item.name} (رقم: ${item.number}) - تاريخ الانتهاء: ${'expiryDate' in item ? item.expiryDate : item.documentedExpiryDate}`
@@ -673,6 +762,13 @@ const App: React.FC = () => {
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                />;
+      case 'archive':
+        return <ArchiveManagement 
+                 archivedRecords={filteredArchivedRecords}
+                 onRestore={handleRestore}
+                 onDeleteForever={handlePermanentDelete}
+                 onEdit={(item) => handleEdit(item, item.originalType)}
+               />;
       default:
         return <LicenseManagement 
                     commercialLicenses={filteredCommercialLicenses}
@@ -691,7 +787,7 @@ const App: React.FC = () => {
         searchQuery={searchQuery}
         onSearchChange={(e) => setSearchQuery(e.target.value)}
         onBackup={handleBackup}
-        onRestore={handleRestore}
+        onRestore={handleRestoreBackup}
       />
       
       <SecondaryHeader 
@@ -752,7 +848,7 @@ const App: React.FC = () => {
       <Modal
         isOpen={deleteConfirmation.isOpen}
         onClose={() => setDeleteConfirmation({ isOpen: false })}
-        title="تأكيد الحذف"
+        title={deleteConfirmation.isPermanent ? "حذف نهائي" : "حذف السجل"}
         size="sm"
       >
         <div className="text-center p-6">
@@ -761,10 +857,15 @@ const App: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mt-5">حذف السجل</h3>
+          <h3 className="text-lg leading-6 font-medium text-gray-900 mt-5">
+              {deleteConfirmation.isPermanent ? "هل أنت متأكد من الحذف النهائي؟" : "نقل إلى الأرشيف"}
+          </h3>
           <div className="mt-2">
             <p className="text-sm text-gray-500">
-              هل أنت متأكد من رغبتك في حذف هذا السجل؟ لا يمكن التراجع عن هذا الإجراء.
+              {deleteConfirmation.isPermanent 
+                ? "سيتم حذف هذا السجل بشكل دائم ولا يمكن استعادته مرة أخرى."
+                : "سيتم نقل السجل إلى الأرشيف (سلة المحذوفات). يمكنك استعادته لاحقاً."
+              }
             </p>
           </div>
           <div className="flex justify-center gap-4 mt-6">
@@ -780,7 +881,7 @@ const App: React.FC = () => {
               onClick={handleConfirmDelete}
               className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
             >
-              نعم, قم بالحذف
+              {deleteConfirmation.isPermanent ? "حذف نهائي" : "نقل للأرشيف"}
             </button>
           </div>
         </div>

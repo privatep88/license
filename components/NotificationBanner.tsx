@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { License, Contract } from '../types';
 
 interface NotificationBannerProps {
@@ -27,6 +27,27 @@ const NotificationBanner: React.FC<NotificationBannerProps> = ({ items, onSendEm
       return item.expiryDate || item.documentedExpiryDate || item.internalExpiryDate || 'غير محدد';
   };
 
+  const isExpired = (item: any) => {
+      const dateStr = getItemDate(item);
+      if(!dateStr || dateStr === 'غير محدد') return false;
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return false;
+      const expiry = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      return expiry < today;
+  };
+
+  const { expiredCount, soonCount } = useMemo(() => {
+    let exp = 0;
+    let soon = 0;
+    items.forEach(item => {
+        if(isExpired(item)) exp++;
+        else soon++;
+    });
+    return { expiredCount: exp, soonCount: soon };
+  }, [items]);
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-5 animate-fade-in-down relative z-20">
         <div className="bg-[#091526] rounded-xl shadow-xl border border-[#1e293b] overflow-hidden relative flex flex-col">
@@ -38,13 +59,21 @@ const NotificationBanner: React.FC<NotificationBannerProps> = ({ items, onSendEm
                     <NotificationIcon />
                     <div>
                         <div className="flex items-center gap-2 mb-1">
-                             <h3 className="text-lg font-bold text-white tracking-wide">تنبيه بقرب انتهاء الصلاحية</h3>
+                             <h3 className="text-lg font-bold text-white tracking-wide">تنبيه انتهاء الصلاحية</h3>
                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#eab308]/10 text-[#eab308] border border-[#eab308]/30">
                                 هام جداً
                              </span>
                         </div>
                         <p className="text-gray-400 text-sm">
-                            يرجى الانتباه، هناك <span className="text-[#eab308] font-bold mx-1 text-base">{count}</span> سجلات تحولت حالتها مؤخراً إلى <span className="text-[#eab308] border-b border-[#eab308] border-dashed pb-0.5 font-medium">قاربت على الانتهاء</span>.
+                            يرجى الانتباه، هناك 
+                            {expiredCount > 0 && (
+                                <> <span className="text-red-500 font-bold mx-1 text-base">{expiredCount}</span> سجلات <span className="text-red-500 border-b border-red-500 border-dashed pb-0.5 font-medium">منتهية</span> </>
+                            )}
+                            {expiredCount > 0 && soonCount > 0 && <span> و </span>}
+                            {soonCount > 0 && (
+                                <> <span className="text-[#eab308] font-bold mx-1 text-base">{soonCount}</span> سجلات <span className="text-[#eab308] border-b border-[#eab308] border-dashed pb-0.5 font-medium">قاربت على الانتهاء</span></>
+                            )}
+                            .
                         </p>
                     </div>
                 </div>
@@ -78,16 +107,18 @@ const NotificationBanner: React.FC<NotificationBannerProps> = ({ items, onSendEm
                 <div className="flex-grow relative overflow-hidden flex items-center bg-[#111e33]">
                     <div className="ticker-wrapper w-full">
                          <div className="ticker-content flex items-center gap-8 pr-4">
-                            {[...items, ...items].map((item, idx) => ( // Duplicate for seamless
+                            {[...items, ...items].map((item, idx) => {
+                                 const expired = isExpired(item);
+                                 return ( // Duplicate for seamless
                                  <div key={`${item.id}-${idx}`} className="flex items-center gap-2 whitespace-nowrap text-xs text-gray-300">
                                      <span className="font-bold text-white">{item.name}</span>
                                      <span className="text-gray-500">[{item.number}]</span>
-                                     <span className="text-[#eab308] dir-ltr inline-block font-mono">
+                                     <span className={`dir-ltr inline-block font-mono ${expired ? 'text-red-500 font-bold' : 'text-[#eab308]'}`}>
                                         [{getItemDate(item)}]
                                      </span>
-                                     <span className="w-1.5 h-1.5 rounded-full bg-[#eab308] animate-pulse"></span>
+                                     <span className={`w-1.5 h-1.5 rounded-full ${expired ? 'bg-red-500' : 'bg-[#eab308]'} animate-pulse`}></span>
                                  </div>
-                            ))}
+                            )})}
                          </div>
                     </div>
                 </div>

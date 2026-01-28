@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 
 export enum RecordStatus {
@@ -71,9 +70,14 @@ export interface Procedure {
   attachments?: Attachment[];
 }
 
+export interface ArchivedRecord extends License {
+    originalType: RecordDataType;
+    deletionDate: string;
+    originalData: RecordType; // Store complete original structure
+}
 
 export interface Tab {
-    id: 'dashboard' | 'licenses' | 'contracts' | 'other' | 'supplierContracts' | 'otherTopics' | 'procedures' | 'trademarks' | 'allRecords';
+    id: 'dashboard' | 'licenses' | 'contracts' | 'other' | 'supplierContracts' | 'otherTopics' | 'procedures' | 'trademarks' | 'allRecords' | 'archive';
     name: string;
     icon: React.FC;
 }
