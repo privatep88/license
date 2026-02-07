@@ -5,7 +5,11 @@ import { RecordStatus } from '../types';
 import { DashboardIcon, LicenseIcon, ContractIcon, AgencyIcon, SupplierIcon, OtherTopicsIcon, ProcedureIcon, TrademarkIcon } from './icons/TabIcons';
 import { formatCost } from '../utils';
 import { CheckIcon, ShieldIcon, ClipboardListIcon } from './icons/ActionIcons';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { 
+    PieChart, Pie, Cell, ResponsiveContainer, 
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+    AreaChart, Area
+} from 'recharts';
 
 interface DashboardProps {
     commercialLicenses: License[];
@@ -20,27 +24,36 @@ interface DashboardProps {
 }
 
 const COLORS = {
-    active: '#10b981', // Emerald-500 (Vibrant Green)
-    soon: '#f59e0b',   // Amber-500 (Warm Yellow)
-    expired: '#ef4444', // Red-500 (Alert Red)
+    active: '#10b981', // Emerald-500
+    soon: '#f59e0b',   // Amber-500
+    expired: '#ef4444', // Red-500
     blue: '#3b82f6',
-    dark: '#0f172a',
-    slate: '#cbd5e1'
+    purple: '#8b5cf6',
+    pink: '#ec4899',
+    orange: '#f97316',
+    cyan: '#06b6d4',
+    slate: '#64748b'
 };
+
+const ARABIC_MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-white/95 backdrop-blur-sm p-4 border border-slate-100 shadow-xl rounded-xl text-right min-w-[180px] z-50">
-                <p className="font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2 text-sm">{label}</p>
-                <div className="space-y-2">
+            <div className="bg-white/95 backdrop-blur-sm p-4 border border-slate-100 shadow-xl rounded-xl text-right min-w-[150px] z-50">
+                <p className="font-bold text-slate-800 mb-2 border-b border-slate-100 pb-2 text-sm">{label}</p>
+                <div className="space-y-1">
                     {payload.map((entry: any, index: number) => (
-                        <div key={index} className="flex items-center justify-between gap-4 text-xs font-medium">
+                        <div key={index} className="flex items-center justify-between gap-3 text-xs font-medium">
                             <span className="flex items-center gap-2">
-                                <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: entry.fill }}></span>
+                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color || entry.fill }}></span>
                                 <span className="text-slate-600">{entry.name}</span>
                             </span>
-                            <span className="font-bold font-mono text-sm" style={{ color: entry.fill }}>{entry.value}</span>
+                            <span className="font-bold font-mono text-sm text-slate-800">
+                                {typeof entry.value === 'number' && entry.name.includes('تكلفة') 
+                                    ? formatCost(entry.value) 
+                                    : entry.value}
+                            </span>
                         </div>
                     ))}
                 </div>
@@ -62,15 +75,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     procedures
 }) => {
 
-    // Helper to calculate stats per category
-    const calculateCategoryStats = (items: (License | Contract)[]) => {
-        const total = items.length;
-        const active = items.filter(i => i.status === RecordStatus.Active).length;
-        const soon = items.filter(i => i.status === RecordStatus.SoonToExpire).length;
-        const expired = items.filter(i => i.status === RecordStatus.Expired).length;
-        return { total, active, soon, expired };
-    };
-
     const stats = useMemo(() => {
         const allLicenses = [
             ...commercialLicenses,
@@ -82,19 +86,67 @@ const Dashboard: React.FC<DashboardProps> = ({
             ...otherTopics
         ];
 
-        // Contracts require special handling for costs
-        const totalContractCost = leaseContracts.reduce((sum, c) => sum + (c.documentedCost || 0) + (c.internalCost || 0), 0);
-        const totalLicenseCost = allLicenses.reduce((sum, l) => sum + (l.cost || 0), 0);
-        
+        // Combine all items that have status/dates
         const allItemsWithStatus = [...allLicenses, ...leaseContracts];
-        const totalRecords = allItemsWithStatus.length + procedures.length; // Include procedures in total count
+        
+        // 1. Category Stats (Counts)
+        const calculateCategoryStats = (items: (License | Contract)[]) => {
+            const total = items.length;
+            const active = items.filter(i => i.status === RecordStatus.Active).length;
+            const soon = items.filter(i => i.status === RecordStatus.SoonToExpire).length;
+            const expired = items.filter(i => i.status === RecordStatus.Expired).length;
+            return { total, active, soon, expired };
+        };
+
+        // 2. Costs per Category
+        const catCosts = {
+            commercial: commercialLicenses.reduce((sum, i) => sum + (i.cost || 0), 0),
+            operational: operationalLicenses.reduce((sum, i) => sum + (i.cost || 0), 0),
+            civilDefense: civilDefenseCerts.reduce((sum, i) => sum + (i.cost || 0), 0),
+            lease: leaseContracts.reduce((sum, i) => sum + (i.documentedCost || 0) + (i.internalCost || 0), 0),
+            general: generalContracts.reduce((sum, i) => sum + (i.cost || 0), 0),
+            agency: specialAgencies.reduce((sum, i) => sum + (i.cost || 0), 0),
+            trademark: trademarkCerts.reduce((sum, i) => sum + (i.cost || 0), 0),
+            other: otherTopics.reduce((sum, i) => sum + (i.cost || 0), 0),
+        };
+
+        const totalCost = Object.values(catCosts).reduce((a, b) => a + b, 0);
+        const totalRecords = allItemsWithStatus.length + procedures.length;
         const activeCount = allItemsWithStatus.filter(i => i.status === RecordStatus.Active).length;
         const soonCount = allItemsWithStatus.filter(i => i.status === RecordStatus.SoonToExpire).length;
         const expiredCount = allItemsWithStatus.filter(i => i.status === RecordStatus.Expired).length;
-
-        // Calculate compliance rate (excluding procedures as they don't have status)
+        
         const complianceBase = allItemsWithStatus.length;
         const complianceRate = complianceBase > 0 ? Math.round((activeCount / complianceBase) * 100) : 0;
+
+        // 3. Expiry Timeline (Next 12 Months)
+        const expiryTimelineData = [];
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        
+        for (let i = 0; i < 12; i++) {
+            let m = currentMonth + i;
+            let y = currentYear;
+            if (m > 11) {
+                m -= 12;
+                y += 1;
+            }
+            
+            const monthName = ARABIC_MONTHS[m];
+            const key = `${monthName} ${y}`;
+            
+            const count = allItemsWithStatus.filter(item => {
+                const dateStr = item.expiryDate || (item as Contract).documentedExpiryDate || (item as Contract).internalExpiryDate;
+                if (!dateStr) return false;
+                const parts = dateStr.split('-');
+                if (parts.length !== 3) return false;
+                const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                return d.getMonth() === m && d.getFullYear() === y;
+            }).length;
+            
+            expiryTimelineData.push({ name: key, count: count });
+        }
 
         return {
             totalRecords,
@@ -102,7 +154,9 @@ const Dashboard: React.FC<DashboardProps> = ({
             activeCount,
             soonCount,
             expiredCount,
-            totalCost: totalContractCost + totalLicenseCost,
+            totalCost,
+            categoryCosts: catCosts,
+            expiryTimeline: expiryTimelineData,
             categories: {
                 commercial: calculateCategoryStats(commercialLicenses),
                 operational: calculateCategoryStats(operationalLicenses),
@@ -116,16 +170,25 @@ const Dashboard: React.FC<DashboardProps> = ({
         };
     }, [commercialLicenses, operationalLicenses, civilDefenseCerts, leaseContracts, generalContracts, specialAgencies, trademarkCerts, otherTopics, procedures]);
 
-    // Data for Pie Chart (Overall Status)
+    // Chart Data Preparation
     const pieData = [
         { name: 'نشط', value: stats.activeCount, color: COLORS.active },
         { name: 'قارب على الانتهاء', value: stats.soonCount, color: COLORS.soon },
         { name: 'منتهي', value: stats.expiredCount, color: COLORS.expired },
     ].filter(d => d.value > 0);
 
-    // Data for Horizontal Bar Chart (Category Breakdown)
-    // Removed categories with 0 total items to keep the chart clean
-    const barData = [
+    const costData = [
+        { name: 'الرخص التجارية', value: stats.categoryCosts.commercial, fill: COLORS.blue },
+        { name: 'الرخص التشغيلية', value: stats.categoryCosts.operational, fill: COLORS.cyan },
+        { name: 'الدفاع المدني', value: stats.categoryCosts.civilDefense, fill: COLORS.purple },
+        { name: 'العقود الايجارية', value: stats.categoryCosts.lease, fill: COLORS.pink },
+        { name: 'عقود الموردين', value: stats.categoryCosts.general, fill: COLORS.orange },
+        { name: 'الوكالات', value: stats.categoryCosts.agency, fill: COLORS.slate },
+        { name: 'العلامات', value: stats.categoryCosts.trademark, fill: '#eab308' },
+        { name: 'أخرى', value: stats.categoryCosts.other, fill: '#84cc16' },
+    ].filter(item => item.value > 0).sort((a, b) => b.value - a.value);
+
+    const statusBreakdownData = [
         { name: 'الرخص التجارية', active: stats.categories.commercial.active, soon: stats.categories.commercial.soon, expired: stats.categories.commercial.expired, total: stats.categories.commercial.total },
         { name: 'الرخص التشغيلية', active: stats.categories.operational.active, soon: stats.categories.operational.soon, expired: stats.categories.operational.expired, total: stats.categories.operational.total },
         { name: 'الدفاع المدني', active: stats.categories.civilDefense.active, soon: stats.categories.civilDefense.soon, expired: stats.categories.civilDefense.expired, total: stats.categories.civilDefense.total },
@@ -134,18 +197,22 @@ const Dashboard: React.FC<DashboardProps> = ({
         { name: 'الوكالات', active: stats.categories.agency.active, soon: stats.categories.agency.soon, expired: stats.categories.agency.expired, total: stats.categories.agency.total },
         { name: 'العلامات', active: stats.categories.trademark.active, soon: stats.categories.trademark.soon, expired: stats.categories.trademark.expired, total: stats.categories.trademark.total },
         { name: 'أخرى', active: stats.categories.other.active, soon: stats.categories.other.soon, expired: stats.categories.other.expired, total: stats.categories.other.total },
-    ].filter(item => item.total > 0); // Only show categories with data
+    ].filter(item => item.total > 0);
+
+    const formatYAxisCost = (value: number) => {
+        if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+        if (value >= 1000) return `${(value / 1000).toFixed(0)}k`;
+        return String(value);
+    };
 
     return (
         <div className="space-y-8 animate-fade-in font-sans">
             
-            {/* 1. Hero Section (Dark Blue) */}
+            {/* 1. Hero Section */}
             <div className="bg-[#091526] rounded-3xl p-6 md:p-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row justify-between items-center text-white">
-                 {/* Background Accent */}
                 <div className="absolute top-0 left-0 w-64 h-64 bg-blue-600 opacity-10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
                 <div className="absolute bottom-0 right-0 w-48 h-48 bg-[#eab308] opacity-5 rounded-full blur-3xl translate-x-1/4 translate-y-1/4"></div>
                 
-                {/* Right Side: Title */}
                 <div className="relative z-10 text-center md:text-right mb-6 md:mb-0">
                     <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
                         <DashboardIcon /> 
@@ -154,14 +221,11 @@ const Dashboard: React.FC<DashboardProps> = ({
                     <p className="text-gray-400 text-sm">نظرة شاملة على حالة جميع السجلات والعقود في النظام</p>
                 </div>
 
-                {/* Left Side: Big Stats */}
                 <div className="flex gap-4 relative z-10">
-                    {/* Total Records Box */}
                     <div className="bg-[#1e293b] border border-gray-700 rounded-2xl p-4 w-32 text-center group hover:border-[#eab308] transition-colors">
                         <span className="text-gray-400 text-xs block mb-1">إجمالي السجلات</span>
                         <span className="text-4xl font-bold text-white group-hover:text-[#eab308] transition-colors">{stats.totalRecords}</span>
                     </div>
-                     {/* Compliance Rate Box */}
                      <div className="bg-[#1e293b] border border-gray-700 rounded-2xl p-4 w-32 text-center group hover:border-green-500 transition-colors">
                         <span className="text-gray-400 text-xs block mb-1">نسبة الامتثال</span>
                         <span className={`text-4xl font-bold transition-colors ${stats.complianceRate >= 80 ? 'text-green-500' : stats.complianceRate >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
@@ -171,10 +235,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </div>
             </div>
 
-            {/* 2. Summary Cards Row */}
+            {/* 2. Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                
-                {/* Cost Card */}
                 <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 group">
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-3 bg-blue-50 rounded-xl text-blue-600 shadow-sm group-hover:scale-110 transition-transform">
@@ -187,7 +249,6 @@ const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                 </div>
 
-                {/* Expired Card */}
                 <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 group relative overflow-hidden">
                      {stats.expiredCount > 0 && <div className="absolute right-0 top-0 w-2 h-full bg-red-500"></div>}
                      <div className="flex justify-between items-start mb-4">
@@ -198,11 +259,9 @@ const Dashboard: React.FC<DashboardProps> = ({
                     <div>
                         <h3 className="text-3xl font-black text-slate-800 mb-1">{stats.expiredCount}</h3>
                         <p className="text-red-600 font-bold text-sm">سجلات منتهية</p>
-                        {stats.expiredCount > 0 && <p className="text-xs text-red-400 mt-2">يرجى اتخاذ إجراء فوري</p>}
                     </div>
                 </div>
 
-                {/* Soon Card */}
                 <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 group relative overflow-hidden">
                     {stats.soonCount > 0 && <div className="absolute right-0 top-0 w-2 h-full bg-yellow-400"></div>}
                      <div className="flex justify-between items-start mb-4">
@@ -213,11 +272,9 @@ const Dashboard: React.FC<DashboardProps> = ({
                     <div>
                         <h3 className="text-3xl font-black text-slate-800 mb-1">{stats.soonCount}</h3>
                         <p className="text-yellow-600 font-bold text-sm">قاربت على الانتهاء</p>
-                        <p className="text-xs text-slate-400 mt-2">خلال 4 أشهر القادمة</p>
                     </div>
                 </div>
 
-                {/* Active Card */}
                 <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 group relative overflow-hidden">
                     <div className="absolute right-0 top-0 w-2 h-full bg-green-500"></div>
                      <div className="flex justify-between items-start mb-4">
@@ -228,21 +285,50 @@ const Dashboard: React.FC<DashboardProps> = ({
                     <div>
                         <h3 className="text-3xl font-black text-slate-800 mb-1">{stats.activeCount}</h3>
                         <p className="text-green-600 font-bold text-sm">سجلات نشطة</p>
-                        <p className="text-xs text-slate-400 mt-2">حالة ممتازة</p>
                     </div>
                 </div>
             </div>
 
-            {/* 3. Graphical Analytics Section - Redesigned */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 3. Detailed Analytics Section */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 
-                {/* Chart 1: Status Distribution (Donut Chart) */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col relative overflow-hidden">
-                    <div className="mb-4 z-10">
-                        <h3 className="text-lg font-bold text-slate-800">حالة الامتثال العام</h3>
-                        <p className="text-xs text-slate-500">توزيع السجلات حسب الحالة الحالية</p>
+                {/* Cost Distribution Chart */}
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
+                    <div className="mb-6">
+                        <h3 className="text-lg font-bold text-slate-800">التكلفة حسب الفئة</h3>
+                        <p className="text-xs text-slate-500">توزيع التكاليف التقديرية (درهم)</p>
                     </div>
-                    
+                    <div className="h-72 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={costData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                                <XAxis type="number" hide />
+                                <YAxis 
+                                    dataKey="name" 
+                                    type="category" 
+                                    width={120} 
+                                    tick={{ fill: '#475569', fontSize: 11, fontFamily: 'Tajawal', fontWeight: 500 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    orientation="right"
+                                />
+                                <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc', opacity: 0.5}} />
+                                <Bar dataKey="value" name="التكلفة" radius={[4, 0, 0, 4]} barSize={20}>
+                                    {costData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                {/* Status Distribution Pie */}
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
+                     <div className="mb-6">
+                        <h3 className="text-lg font-bold text-slate-800">حالة الامتثال</h3>
+                        <p className="text-xs text-slate-500">نسبة السجلات النشطة مقابل المنتهية</p>
+                    </div>
                     <div className="flex-grow flex items-center justify-center relative">
                         <div className="h-64 w-full">
                             <ResponsiveContainer width="100%" height="100%">
@@ -252,10 +338,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                                         cx="50%"
                                         cy="50%"
                                         innerRadius={80}
-                                        outerRadius={105}
-                                        paddingAngle={4}
+                                        outerRadius={100}
+                                        paddingAngle={5}
                                         dataKey="value"
-                                        cornerRadius={6}
+                                        cornerRadius={5}
                                         stroke="none"
                                     >
                                         {pieData.map((entry, index) => (
@@ -266,147 +352,134 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 </PieChart>
                             </ResponsiveContainer>
                         </div>
-                        {/* Center Text for Donut */}
                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
                             <p className="text-slate-400 text-xs font-medium mb-1">الإجمالي</p>
-                            <span className="text-4xl font-black text-slate-800 block leading-none">{stats.activeCount + stats.soonCount + stats.expiredCount}</span>
+                            <span className="text-3xl font-black text-slate-800">{stats.activeCount + stats.soonCount + stats.expiredCount}</span>
                         </div>
                     </div>
-                    
-                    {/* Custom Legend */}
                     <div className="flex justify-center gap-4 mt-2">
                         {pieData.map((entry, index) => (
                              <div key={index} className="flex items-center gap-2">
-                                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></span>
+                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }}></span>
                                 <span className="text-xs font-medium text-slate-600">{entry.name}</span>
                              </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Chart 2: Category Breakdown (Horizontal Bar Chart) */}
-                <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
-                    <div className="flex justify-between items-center mb-6">
-                         <div>
-                            <h3 className="text-lg font-bold text-slate-800">تحليل الفئات</h3>
-                            <p className="text-xs text-slate-500">أداء كل قسم من أقسام النظام</p>
-                        </div>
-                    </div>
-                    <div className="h-80 w-full" style={{ direction: 'ltr' }}> {/* Keep container LTR for Axis alignment */}
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                                layout="vertical"
-                                data={barData}
-                                margin={{ top: 0, right: 30, left: 20, bottom: 0 }}
-                                barSize={16}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} stroke="#f1f5f9" />
-                                <XAxis type="number" hide />
-                                <YAxis 
-                                    dataKey="name" 
-                                    type="category" 
-                                    width={120}
-                                    tick={{ fill: '#475569', fontSize: 12, fontFamily: 'Tajawal', fontWeight: 500 }}
-                                    axisLine={false}
-                                    tickLine={false}
-                                    orientation="right" // Right align labels for Arabic
-                                />
-                                <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
-                                <Bar dataKey="active" name="نشط" stackId="a" fill={COLORS.active} radius={[0, 4, 4, 0]} />
-                                <Bar dataKey="soon" name="قريب" stackId="a" fill={COLORS.soon} />
-                                <Bar dataKey="expired" name="منتهي" stackId="a" fill={COLORS.expired} radius={[4, 0, 0, 4]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                    {/* Legend Custom */}
-                    <div className="flex justify-end gap-6 mt-4 border-t border-slate-50 pt-4 px-4">
-                            <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                <span className="w-3 h-3 rounded bg-green-500"></span> نشط
-                            </div>
-                            <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                <span className="w-3 h-3 rounded bg-yellow-500"></span> قارب على الانتهاء
-                            </div>
-                            <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                <span className="w-3 h-3 rounded bg-red-500"></span> منتهي
-                            </div>
-                    </div>
-                </div>
-
             </div>
 
-            {/* 4. Category Details Grid */}
+             {/* 4. Expiry Timeline (Full Width) */}
+             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                <div className="mb-6 flex justify-between items-end">
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-800">الجدول الزمني للانتهاء</h3>
+                        <p className="text-xs text-slate-500">توقع عدد السجلات التي ستنتهي خلال الـ 12 شهراً القادمة</p>
+                    </div>
+                </div>
+                <div className="h-64 w-full" style={{ direction: 'ltr' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={stats.expiryTimeline} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2}/>
+                                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                                </linearGradient>
+                            </defs>
+                            <XAxis 
+                                dataKey="name" 
+                                tick={{ fill: '#64748b', fontSize: 11 }} 
+                                axisLine={false} 
+                                tickLine={false} 
+                                interval={0}
+                            />
+                            <YAxis hide />
+                            <CartesianGrid vertical={false} stroke="#f1f5f9" strokeDasharray="3 3" />
+                            <Tooltip 
+                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                itemStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+                                labelStyle={{ color: '#64748b', fontSize: '12px', marginBottom: '4px' }}
+                            />
+                            <Area 
+                                type="monotone" 
+                                dataKey="count" 
+                                name="عدد السجلات" 
+                                stroke="#f59e0b" 
+                                strokeWidth={3} 
+                                fillOpacity={1} 
+                                fill="url(#colorCount)" 
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+
+            {/* 5. Category Status Breakdown */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                <div className="mb-6">
+                    <h3 className="text-lg font-bold text-slate-800">تفاصيل حالة الفئات</h3>
+                    <p className="text-xs text-slate-500">توزيع الحالة لكل قسم</p>
+                </div>
+                <div className="h-80 w-full" style={{ direction: 'ltr' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                            layout="vertical"
+                            data={statusBreakdownData}
+                            margin={{ top: 0, right: 30, left: 20, bottom: 0 }}
+                            barSize={24}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} stroke="#f1f5f9" />
+                            <XAxis type="number" hide />
+                            <YAxis 
+                                dataKey="name" 
+                                type="category" 
+                                width={120}
+                                tick={{ fill: '#475569', fontSize: 12, fontFamily: 'Tajawal', fontWeight: 500 }}
+                                axisLine={false}
+                                tickLine={false}
+                                orientation="right"
+                            />
+                            <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
+                            <Bar dataKey="active" name="نشط" stackId="a" fill={COLORS.active} radius={[0, 4, 4, 0]} />
+                            <Bar dataKey="soon" name="قريب" stackId="a" fill={COLORS.soon} />
+                            <Bar dataKey="expired" name="منتهي" stackId="a" fill={COLORS.expired} radius={[4, 0, 0, 4]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+                 <div className="flex justify-center gap-6 mt-4 border-t border-slate-50 pt-4">
+                    <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                        <span className="w-3 h-3 rounded bg-green-500"></span> نشط
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                        <span className="w-3 h-3 rounded bg-yellow-500"></span> قارب على الانتهاء
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                        <span className="w-3 h-3 rounded bg-red-500"></span> منتهي
+                    </div>
+                </div>
+            </div>
+
+            {/* 6. Details Grid */}
             <div>
                 <div className="flex items-center gap-3 mb-6">
                     <div className="p-1.5 bg-[#eab308] rounded-lg shadow-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" /></svg>
                     </div>
-                    <h2 className="text-xl font-bold text-slate-800">تفاصيل الفئات</h2>
+                    <h2 className="text-xl font-bold text-slate-800">بطاقات تفصيلية</h2>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <CategoryDetailCard 
-                        title="الرخص التجارية" 
-                        icon={<LicenseIcon />} 
-                        stats={stats.categories.commercial} 
-                    />
-                    <CategoryDetailCard 
-                        title="الرخص التشغيلية" 
-                        icon={<ClipboardListIcon />} 
-                        stats={stats.categories.operational} 
-                    />
-                    <CategoryDetailCard 
-                        title="الدفاع المدني" 
-                        icon={<ShieldIcon />} 
-                        stats={stats.categories.civilDefense} 
-                    />
-                     <CategoryDetailCard 
-                        title="العقود الايجارية" 
-                        icon={<ContractIcon />} 
-                        stats={stats.categories.lease} 
-                    />
-                     <CategoryDetailCard 
-                        title="عقود الموردين" 
-                        icon={<SupplierIcon />} 
-                        stats={stats.categories.general} 
-                    />
-                     <CategoryDetailCard 
-                        title="الوكالات الخاصة" 
-                        icon={<AgencyIcon />} 
-                        stats={stats.categories.agency} 
-                    />
-                     <CategoryDetailCard 
-                        title="العلامات التجارية" 
-                        icon={<TrademarkIcon />} 
-                        stats={stats.categories.trademark} 
-                    />
-                     <CategoryDetailCard 
-                        title="مواضيع أخرى" 
-                        icon={<OtherTopicsIcon />} 
-                        stats={stats.categories.other} 
-                    />
+                    <CategoryDetailCard title="الرخص التجارية" icon={<LicenseIcon />} stats={stats.categories.commercial} />
+                    <CategoryDetailCard title="الرخص التشغيلية" icon={<ClipboardListIcon />} stats={stats.categories.operational} />
+                    <CategoryDetailCard title="الدفاع المدني" icon={<ShieldIcon />} stats={stats.categories.civilDefense} />
+                    <CategoryDetailCard title="العقود الايجارية" icon={<ContractIcon />} stats={stats.categories.lease} />
+                    <CategoryDetailCard title="عقود الموردين" icon={<SupplierIcon />} stats={stats.categories.general} />
+                    <CategoryDetailCard title="الوكالات الخاصة" icon={<AgencyIcon />} stats={stats.categories.agency} />
+                    <CategoryDetailCard title="العلامات التجارية" icon={<TrademarkIcon />} stats={stats.categories.trademark} />
+                    <CategoryDetailCard title="مواضيع أخرى" icon={<OtherTopicsIcon />} stats={stats.categories.other} />
                 </div>
             </div>
-
-            {/* 5. Procedures Database Summary */}
-            <div className="bg-gradient-to-r from-blue-50 to-white rounded-2xl p-1 border border-blue-100 shadow-sm">
-                <div className="bg-white/50 p-6 rounded-xl flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex items-center gap-5">
-                        <div className="p-4 bg-white shadow-md text-blue-600 rounded-2xl border border-blue-50">
-                            <ProcedureIcon />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-900">قاعدة بيانات الإجراءات</h3>
-                            <p className="text-sm text-slate-500 mt-1">معلومات الاتصال، المواقع الإلكترونية، وبيانات الدخول للجهات الحكومية</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4 bg-white px-6 py-3 rounded-xl border border-slate-100 shadow-sm">
-                        <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">عدد الإجراءات</span>
-                        <div className="w-px h-8 bg-slate-100"></div>
-                        <span className="text-3xl font-black text-blue-600">{procedures.length}</span>
-                    </div>
-                </div>
-            </div>
-
+            
             <style>{`
                 @keyframes fade-in {
                     from { opacity: 0; transform: translateY(10px); }
@@ -420,14 +493,12 @@ const Dashboard: React.FC<DashboardProps> = ({
     );
 };
 
-// Sub-component for Category Detail Card
 const CategoryDetailCard: React.FC<{
     title: string;
     icon: React.ReactNode;
     stats: { total: number; active: number; soon: number; expired: number };
 }> = ({ title, icon, stats }) => {
     
-    // Calculate percentages for the progress bar
     const activePct = stats.total > 0 ? (stats.active / stats.total) * 100 : 0;
     const soonPct = stats.total > 0 ? (stats.soon / stats.total) * 100 : 0;
     const expiredPct = stats.total > 0 ? (stats.expired / stats.total) * 100 : 0;
@@ -444,14 +515,12 @@ const CategoryDetailCard: React.FC<{
                 </span>
             </div>
 
-            {/* Progress Bar */}
             <div className="h-2.5 w-full bg-slate-50 rounded-full overflow-hidden flex mb-4 border border-slate-100">
                 {stats.expired > 0 && <div style={{ width: `${expiredPct}%` }} className="bg-red-500 h-full" />}
                 {stats.soon > 0 && <div style={{ width: `${soonPct}%` }} className="bg-yellow-400 h-full" />}
                 {stats.active > 0 && <div style={{ width: `${activePct}%` }} className="bg-green-500 h-full" />}
             </div>
 
-            {/* Stats Breakdown */}
             <div className="flex justify-between text-xs text-slate-500 font-medium pt-2 border-t border-slate-50">
                 <div className="flex items-center gap-1.5" title="نشط">
                     <span className="w-2 h-2 rounded-full bg-green-500"></span>
