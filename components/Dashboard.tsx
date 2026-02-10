@@ -396,6 +396,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 axisLine={false} 
                                 tickLine={false} 
                                 interval={0}
+                                reversed={true}
                             />
                             <YAxis hide />
                             <CartesianGrid vertical={false} stroke="#f1f5f9" strokeDasharray="3 3" />
