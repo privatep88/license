@@ -293,17 +293,17 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 
                 {/* Cost Distribution Chart */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col h-full">
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
                     <div className="mb-4">
                         <h3 className="text-lg font-bold text-slate-800">التكلفة حسب الفئة</h3>
                         <p className="text-xs text-slate-500">توزيع التكاليف التقديرية (درهم)</p>
                     </div>
                     
-                    <div className="flex flex-col lg:flex-row gap-6 items-center flex-grow">
+                    <div className="flex flex-col lg:flex-row gap-6 items-start flex-grow">
                         {/* Chart */}
-                        <div className="flex-1 h-64 w-full">
+                        <div className="flex-1 h-[360px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={costData} layout="vertical" margin={{ top: 0, right: 0, left: 10, bottom: 0 }}>
+                                <BarChart data={costData} layout="vertical" margin={{ top: 0, right: 0, left: 10, bottom: 0 }} barCategoryGap={20}>
                                     <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                                     <XAxis type="number" hide reversed={true} />
                                     <YAxis 
@@ -322,7 +322,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                         </div>
 
                         {/* Detailed Values List */}
-                        <div className="w-full lg:w-56 flex flex-col gap-2.5 h-64 overflow-y-auto pr-2 custom-scrollbar border-r lg:border-r-0 lg:border-l border-slate-100">
+                        <div className="w-full lg:w-56 flex flex-col gap-3 pr-2 border-r lg:border-r-0 lg:border-l border-slate-100 pt-2 pb-2">
                             {costData.map((item, index) => (
                                 <div key={index} className="flex items-center justify-between p-2.5 bg-slate-50/50 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors">
                                      <div className="flex items-center gap-2 overflow-hidden">
