@@ -8,7 +8,7 @@ import { CheckIcon, ShieldIcon, ClipboardListIcon } from './icons/ActionIcons';
 import { 
     PieChart, Pie, Cell, ResponsiveContainer, 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-    AreaChart, Area, LabelList
+    AreaChart, Area
 } from 'recharts';
 
 interface DashboardProps {
@@ -293,39 +293,51 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 
                 {/* Cost Distribution Chart */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
-                    <div className="mb-6">
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col h-full">
+                    <div className="mb-4">
                         <h3 className="text-lg font-bold text-slate-800">التكلفة حسب الفئة</h3>
                         <p className="text-xs text-slate-500">توزيع التكاليف التقديرية (درهم)</p>
                     </div>
-                    <div className="h-72 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={costData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                                <XAxis type="number" hide />
-                                <YAxis 
-                                    dataKey="name" 
-                                    type="category" 
-                                    width={120} 
-                                    tick={{ fill: '#475569', fontSize: 11, fontFamily: 'Tajawal', fontWeight: 500 }}
-                                    axisLine={false}
-                                    tickLine={false}
-                                    orientation="right"
-                                />
-                                <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc', opacity: 0.5}} />
-                                <Bar dataKey="value" name="التكلفة" radius={[4, 0, 0, 4]} barSize={20}>
-                                    <LabelList 
-                                        dataKey="value" 
-                                        position="insideLeft" 
-                                        formatter={(val: number) => formatCost(val)}
-                                        style={{ fontSize: '10px', fontWeight: 'bold', fill: '#fff', textShadow: '0 0 2px rgba(0,0,0,0.5)' }}
+                    
+                    <div className="flex flex-col lg:flex-row gap-6 items-center flex-grow">
+                        {/* Chart */}
+                        <div className="flex-1 h-64 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={costData} layout="vertical" margin={{ top: 0, right: 0, left: 10, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                                    <XAxis type="number" hide reversed={true} />
+                                    <YAxis 
+                                        dataKey="name" 
+                                        type="category" 
+                                        width={90} 
+                                        tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'Tajawal', fontWeight: 600 }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        orientation="right"
+                                        interval={0}
                                     />
-                                    {costData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                                    <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc', opacity: 0.5}} />
+                                    <Bar dataKey="value" name="التكلفة" radius={[4, 0, 0, 4]} barSize={16} background={{ fill: '#f8fafc', radius: [4, 0, 0, 4] }}>
+                                        {costData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        {/* Detailed Values List */}
+                        <div className="w-full lg:w-56 flex flex-col gap-2.5 h-64 overflow-y-auto pr-2 custom-scrollbar border-r lg:border-r-0 lg:border-l border-slate-100">
+                            {costData.map((item, index) => (
+                                <div key={index} className="flex items-center justify-between p-2.5 bg-slate-50/50 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors">
+                                     <div className="flex items-center gap-2 overflow-hidden">
+                                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.fill }}></span>
+                                        <span className="text-xs text-slate-600 font-medium truncate max-w-[90px]" title={item.name}>{item.name}</span>
+                                    </div>
+                                    <span className="text-xs font-bold text-slate-800 font-mono bg-white px-2 py-0.5 rounded border border-slate-100">{formatCost(item.value)}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
