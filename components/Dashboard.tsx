@@ -175,7 +175,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         { name: 'نشط', value: stats.activeCount, color: COLORS.active },
         { name: 'قارب على الانتهاء', value: stats.soonCount, color: COLORS.soon },
         { name: 'منتهي', value: stats.expiredCount, color: COLORS.expired },
-    ].filter(d => d.value > 0);
+    ];
 
     const costData = [
         { name: 'الرخص التجارية', value: stats.categoryCosts.commercial, fill: COLORS.blue },
@@ -188,16 +188,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         { name: 'أخرى', value: stats.categoryCosts.other, fill: '#84cc16' },
     ].filter(item => item.value > 0).sort((a, b) => b.value - a.value);
 
-    const statusBreakdownData = [
-        { name: 'الرخص التجارية', active: stats.categories.commercial.active, soon: stats.categories.commercial.soon, expired: stats.categories.commercial.expired, total: stats.categories.commercial.total },
-        { name: 'الرخص التشغيلية', active: stats.categories.operational.active, soon: stats.categories.operational.soon, expired: stats.categories.operational.expired, total: stats.categories.operational.total },
-        { name: 'الدفاع المدني', active: stats.categories.civilDefense.active, soon: stats.categories.civilDefense.soon, expired: stats.categories.civilDefense.expired, total: stats.categories.civilDefense.total },
-        { name: 'العقود الايجارية', active: stats.categories.lease.active, soon: stats.categories.lease.soon, expired: stats.categories.lease.expired, total: stats.categories.lease.total },
-        { name: 'عقود الموردين', active: stats.categories.general.active, soon: stats.categories.general.soon, expired: stats.categories.general.expired, total: stats.categories.general.total },
-        { name: 'الوكالات', active: stats.categories.agency.active, soon: stats.categories.agency.soon, expired: stats.categories.agency.expired, total: stats.categories.agency.total },
-        { name: 'العلامات', active: stats.categories.trademark.active, soon: stats.categories.trademark.soon, expired: stats.categories.trademark.expired, total: stats.categories.trademark.total },
-        { name: 'أخرى', active: stats.categories.other.active, soon: stats.categories.other.soon, expired: stats.categories.other.expired, total: stats.categories.other.total },
-    ].filter(item => item.total > 0);
+    // const statusBreakdownData has been removed as it is no longer used for the removed chart
 
     const formatYAxisCost = (value: number) => {
         if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
@@ -347,7 +338,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
-                                        data={pieData}
+                                        data={pieData.filter(d => d.value > 0)}
                                         cx="50%"
                                         cy="50%"
                                         innerRadius={80}
@@ -370,11 +361,18 @@ const Dashboard: React.FC<DashboardProps> = ({
                             <span className="text-3xl font-black text-slate-800">{stats.activeCount + stats.soonCount + stats.expiredCount}</span>
                         </div>
                     </div>
-                    <div className="flex justify-center gap-4 mt-2">
+                    
+                     <div className="space-y-3 mt-4">
                         {pieData.map((entry, index) => (
-                             <div key={index} className="flex items-center gap-2">
-                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }}></span>
-                                <span className="text-xs font-medium text-slate-600">{entry.name}</span>
+                             <div key={index} className="flex items-center justify-between p-3 bg-slate-50/50 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: entry.color }}></span>
+                                    <span className="text-sm font-bold text-slate-700">{entry.name}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                     <span className="text-lg font-black text-slate-800">{entry.value}</span>
+                                     <span className="text-xs text-slate-400 font-medium">سجل</span>
+                                </div>
                              </div>
                         ))}
                     </div>
@@ -425,54 +423,19 @@ const Dashboard: React.FC<DashboardProps> = ({
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
-            </div>
-
-            {/* 5. Category Status Breakdown */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-                <div className="mb-6">
-                    <h3 className="text-lg font-bold text-slate-800">تفاصيل حالة الفئات</h3>
-                    <p className="text-xs text-slate-500">توزيع الحالة لكل قسم</p>
-                </div>
-                <div className="h-80 w-full" style={{ direction: 'ltr' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                            layout="vertical"
-                            data={statusBreakdownData}
-                            margin={{ top: 0, right: 30, left: 20, bottom: 0 }}
-                            barSize={24}
-                        >
-                            <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} stroke="#f1f5f9" />
-                            <XAxis type="number" hide />
-                            <YAxis 
-                                dataKey="name" 
-                                type="category" 
-                                width={120}
-                                tick={{ fill: '#475569', fontSize: 12, fontFamily: 'Tajawal', fontWeight: 500 }}
-                                axisLine={false}
-                                tickLine={false}
-                                orientation="right"
-                            />
-                            <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
-                            <Bar dataKey="active" name="نشط" stackId="a" fill={COLORS.active} radius={[0, 4, 4, 0]} />
-                            <Bar dataKey="soon" name="قريب" stackId="a" fill={COLORS.soon} />
-                            <Bar dataKey="expired" name="منتهي" stackId="a" fill={COLORS.expired} radius={[4, 0, 0, 4]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-                 <div className="flex justify-center gap-6 mt-4 border-t border-slate-50 pt-4">
-                    <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                        <span className="w-3 h-3 rounded bg-green-500"></span> نشط
-                    </div>
-                    <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                        <span className="w-3 h-3 rounded bg-yellow-500"></span> قارب على الانتهاء
-                    </div>
-                    <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                        <span className="w-3 h-3 rounded bg-red-500"></span> منتهي
+                <div className="mt-6 pt-6 border-t border-slate-100">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+                        {stats.expiryTimeline.map((item, index) => (
+                            <div key={index} className={`flex flex-col items-center p-3 rounded-xl border transition-all ${item.count > 0 ? 'bg-orange-50 border-orange-100 shadow-sm scale-105' : 'bg-slate-50/50 border-slate-100 opacity-70'}`}>
+                                <span className="text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">{item.name}</span>
+                                <span className={`text-xl font-black ${item.count > 0 ? 'text-orange-500' : 'text-slate-300'}`}>{item.count}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
 
-            {/* 6. Details Grid */}
+            {/* 5. Details Grid */}
             <div>
                 <div className="flex items-center gap-3 mb-6">
                     <div className="p-1.5 bg-[#eab308] rounded-lg shadow-sm">
