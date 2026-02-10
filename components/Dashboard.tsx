@@ -8,7 +8,7 @@ import { CheckIcon, ShieldIcon, ClipboardListIcon } from './icons/ActionIcons';
 import { 
     PieChart, Pie, Cell, ResponsiveContainer, 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-    AreaChart, Area
+    AreaChart, Area, LabelList
 } from 'recharts';
 
 interface DashboardProps {
@@ -314,6 +314,12 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 />
                                 <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc', opacity: 0.5}} />
                                 <Bar dataKey="value" name="التكلفة" radius={[4, 0, 0, 4]} barSize={20}>
+                                    <LabelList 
+                                        dataKey="value" 
+                                        position="insideLeft" 
+                                        formatter={(val: number) => formatCost(val)}
+                                        style={{ fontSize: '10px', fontWeight: 'bold', fill: '#fff', textShadow: '0 0 2px rgba(0,0,0,0.5)' }}
+                                    />
                                     {costData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={entry.fill} />
                                     ))}
