@@ -74,6 +74,9 @@ const Dashboard: React.FC<DashboardProps> = ({
     otherTopics,
     procedures
 }) => {
+    
+    // Automatically get the current year
+    const currentYear = new Date().getFullYear();
 
     const stats = useMemo(() => {
         const allLicenses = [
@@ -119,22 +122,11 @@ const Dashboard: React.FC<DashboardProps> = ({
         const complianceBase = allItemsWithStatus.length;
         const complianceRate = complianceBase > 0 ? Math.round((activeCount / complianceBase) * 100) : 0;
 
-        // 3. Expiry Timeline (Next 12 Months)
+        // 3. Expiry Timeline (Per Current Year automatically)
         const expiryTimelineData = [];
-        const today = new Date();
-        const currentMonth = today.getMonth();
-        const currentYear = today.getFullYear();
         
-        for (let i = 0; i < 12; i++) {
-            let m = currentMonth + i;
-            let y = currentYear;
-            if (m > 11) {
-                m -= 12;
-                y += 1;
-            }
-            
+        for (let m = 0; m < 12; m++) {
             const monthName = ARABIC_MONTHS[m];
-            const key = `${monthName} ${y}`;
             
             const count = allItemsWithStatus.filter(item => {
                 const dateStr = item.expiryDate || (item as Contract).documentedExpiryDate || (item as Contract).internalExpiryDate;
@@ -142,10 +134,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                 const parts = dateStr.split('-');
                 if (parts.length !== 3) return false;
                 const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-                return d.getMonth() === m && d.getFullYear() === y;
+                return d.getFullYear() === currentYear && d.getMonth() === m;
             }).length;
             
-            expiryTimelineData.push({ name: key, count: count });
+            expiryTimelineData.push({ name: monthName, count: count });
         }
 
         return {
@@ -168,7 +160,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 other: calculateCategoryStats(otherTopics),
             }
         };
-    }, [commercialLicenses, operationalLicenses, civilDefenseCerts, leaseContracts, generalContracts, specialAgencies, trademarkCerts, otherTopics, procedures]);
+    }, [commercialLicenses, operationalLicenses, civilDefenseCerts, leaseContracts, generalContracts, specialAgencies, trademarkCerts, otherTopics, procedures, currentYear]);
 
     // Chart Data Preparation
     const pieData = [
@@ -382,12 +374,13 @@ const Dashboard: React.FC<DashboardProps> = ({
 
              {/* 4. Expiry Timeline (Full Width) */}
              <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-                <div className="mb-6 flex justify-between items-end">
+                <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                     <div>
                         <h3 className="text-lg font-bold text-slate-800">الجدول الزمني للانتهاء</h3>
-                        <p className="text-xs text-slate-500">توقع عدد السجلات التي ستنتهي خلال الـ 12 شهراً القادمة</p>
+                        <p className="text-xs text-slate-500">توقع عدد السجلات المنتهية لعام {currentYear}</p>
                     </div>
                 </div>
+                
                 <div className="h-64 w-full" style={{ direction: 'ltr' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={stats.expiryTimeline} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
