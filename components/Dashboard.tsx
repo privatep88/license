@@ -309,12 +309,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                     <YAxis 
                                         dataKey="name" 
                                         type="category" 
-                                        width={90} 
-                                        tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'Tajawal', fontWeight: 600 }}
-                                        axisLine={false}
-                                        tickLine={false}
-                                        orientation="right"
-                                        interval={0}
+                                        hide
                                     />
                                     <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc', opacity: 0.5}} />
                                     <Bar dataKey="value" name="التكلفة" radius={[4, 0, 0, 4]} barSize={16} background={{ fill: '#f8fafc', radius: [4, 0, 0, 4] }}>
