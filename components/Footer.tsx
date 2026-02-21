@@ -69,7 +69,7 @@ const Footer: React.FC = () => {
       </div>
       
       {/* Bottom Bar */}
-      <div className="bg-[#060e1a] py-4">
+      <div className="bg-[#091526] py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center text-center text-sm text-gray-500 gap-2">
           <p className="text-white border border-[#eab308] px-4 py-1.5 rounded-lg">اعداد وتصميم / خالد الجفري</p>
           <p>جميع الحقوق محفوظة لـ © {currentYear} SAHER FOR SMART SERVICES</p>
