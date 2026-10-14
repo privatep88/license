@@ -236,7 +236,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             const monthName = ARABIC_MONTHS[m];
             
             const count = allItemsWithStatus.filter(item => {
-                const dateStr = item.expiryDate || (item as Contract).documentedExpiryDate || (item as Contract).internalExpiryDate;
+                const dateStr = ('expiryDate' in item ? (item as License).expiryDate : '') || (item as Contract).documentedExpiryDate || (item as Contract).internalExpiryDate;
                 if (!dateStr) return false;
                 const parts = dateStr.split('-');
                 if (parts.length !== 3) return false;
@@ -608,7 +608,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                                 hide
                                             />
                                             <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc', opacity: 0.6}} />
-                                            <Bar dataKey="value" name="التكلفة" radius={[4, 0, 0, 4]} barSize={18} background={{ fill: '#f8fafc', radius: [4, 0, 0, 4] }}>
+                                            <Bar dataKey="value" name="التكلفة" radius={[4, 0, 0, 4]} barSize={18} background={{ fill: '#f8fafc', radius: 4 }}>
                                                 {costData.map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={entry.fill} />
                                                 ))}

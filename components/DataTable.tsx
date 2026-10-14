@@ -501,9 +501,9 @@ const DataTable = <T extends { id: number; [key: string]: any }>({
                     <span className="text-xs text-slate-300">({sortedData.length} سجل)</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    {Object.entries(totalSums).map(([key, val]) => (
+                    {(Object.entries(totalSums) as [string, number][]).map(([key, val]) => (
                       <div key={key} className="bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
-                        <span className="text-base font-black font-mono text-emerald-300">{formatCost(val)}</span>
+                        <span className="text-base font-black font-mono text-emerald-300">{formatCost(Number(val))}</span>
                         <span className="text-xs font-bold text-white mr-1.5">AED</span>
                       </div>
                     ))}
